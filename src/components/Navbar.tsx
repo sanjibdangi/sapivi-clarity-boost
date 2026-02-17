@@ -16,22 +16,26 @@ const Navbar = () => {
 
   const scrollTo = (id: string) => {
     setMobileOpen(false);
-    const el = document.getElementById(id.toLowerCase());
-    el?.scrollIntoView({ behavior: "smooth" });
+    document.getElementById(id.toLowerCase())?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
     <motion.nav
       initial={{ y: -80 }}
       animate={{ y: 0 }}
+      transition={{ duration: 0.5 }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? "glass-card py-3" : "py-5 bg-transparent"
+        scrolled
+          ? "bg-card/95 backdrop-blur-md shadow-md py-3 border-b border-border"
+          : "py-5 bg-transparent"
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <span className="text-2xl font-display font-bold text-primary">SAPIVI</span>
-          <span className="text-[10px] text-muted-foreground tracking-wider">ISO 9001:2015</span>
+          <span className="text-[10px] text-muted-foreground tracking-wider border border-border rounded px-1.5 py-0.5">
+            ISO 9001:2015
+          </span>
         </div>
 
         <div className="hidden md:flex items-center gap-8">
@@ -39,18 +43,19 @@ const Navbar = () => {
             <button
               key={item}
               onClick={() => scrollTo(item)}
-              className="text-sm text-muted-foreground hover:text-primary transition-colors font-medium"
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors relative group"
             >
               {item}
+              <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary rounded transition-all group-hover:w-full" />
             </button>
           ))}
         </div>
 
         <button
-          className="md:hidden text-foreground"
+          className="md:hidden text-foreground p-2"
           onClick={() => setMobileOpen(!mobileOpen)}
         >
-          {mobileOpen ? <X size={24} /> : <Menu size={24} />}
+          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
@@ -60,13 +65,13 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden glass-card mt-2 mx-4 rounded-lg overflow-hidden"
+            className="md:hidden bg-card border-t border-border shadow-lg"
           >
             {navItems.map((item) => (
               <button
                 key={item}
                 onClick={() => scrollTo(item)}
-                className="block w-full text-left px-6 py-3 text-sm text-muted-foreground hover:text-primary hover:bg-muted/50 transition-colors"
+                className="block w-full text-left px-6 py-3.5 text-sm font-medium text-foreground hover:text-primary hover:bg-muted transition-colors"
               >
                 {item}
               </button>

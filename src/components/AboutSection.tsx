@@ -1,5 +1,4 @@
-import { motion } from "framer-motion";
-import { useInView } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useRef } from "react";
 
 const skills = [
@@ -17,11 +16,11 @@ const SkillBar = ({ name, value, delay }: { name: string; value: number; delay: 
 
   return (
     <div ref={ref} className="mb-5">
-      <div className="flex justify-between mb-2">
+      <div className="flex justify-between mb-1.5">
         <span className="text-sm font-medium text-foreground">{name}</span>
-        <span className="text-sm text-primary font-semibold">{value}%</span>
+        <span className="text-sm text-primary font-bold">{value}%</span>
       </div>
-      <div className="h-2 rounded-full bg-muted overflow-hidden">
+      <div className="h-2.5 rounded-full bg-muted overflow-hidden">
         <motion.div
           initial={{ width: 0 }}
           animate={isInView ? { width: `${value}%` } : { width: 0 }}
@@ -42,14 +41,15 @@ const AboutSection = () => {
       <div className="max-w-7xl mx-auto">
         <div className="grid md:grid-cols-2 gap-16 items-start" ref={ref}>
           <motion.div
-            initial={{ opacity: 0, x: -40 }}
+            initial={{ opacity: 0, x: -30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.7 }}
+            transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-4xl font-display font-bold mb-2">
-              About <span className="text-gradient">SAPIVI</span>
+            <p className="text-primary font-semibold text-sm tracking-widest uppercase mb-2">About Us</p>
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-6">
+              About SAPIVI
             </h2>
-            <div className="h-1 w-16 bg-primary rounded mb-6" />
+            <div className="h-1 w-12 bg-primary rounded mb-6" />
             <p className="text-muted-foreground leading-relaxed mb-4">
               We have rich experience in HR consultation, Staff sourcing, Digital Marketing, IT services, and management.
             </p>
@@ -59,11 +59,11 @@ const AboutSection = () => {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, x: 40 }}
+            initial={{ opacity: 0, x: 30 }}
             animate={isInView ? { opacity: 1, x: 0 } : {}}
-            transition={{ duration: 0.7, delay: 0.2 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
           >
-            <h3 className="text-2xl font-display font-bold mb-6">Our Skills</h3>
+            <h3 className="text-2xl font-display font-bold text-foreground mb-6">Our Skills</h3>
             {skills.map((skill, i) => (
               <SkillBar key={skill.name} {...skill} delay={i * 0.1} />
             ))}

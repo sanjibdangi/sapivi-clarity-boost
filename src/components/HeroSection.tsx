@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ArrowDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import heroBg from "@/assets/hero-bg.jpg";
 
 const services = [
@@ -16,63 +16,76 @@ const HeroSection = () => {
   return (
     <section
       id="home"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative min-h-screen flex items-center overflow-hidden"
     >
+      {/* Background image */}
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{ backgroundImage: `url(${heroBg})` }}
       />
-      <div className="absolute inset-0 bg-background/60" />
+      {/* Light overlay for readability */}
+      <div className="absolute inset-0 bg-gradient-to-br from-background/90 via-background/70 to-transparent" />
 
-      <div className="relative z-10 text-center max-w-4xl mx-auto px-6">
-        <motion.p
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="text-muted-foreground text-lg mb-4 tracking-widest uppercase"
-        >
-          We are providing
-        </motion.p>
+      <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-12 w-full py-32">
+        <div className="max-w-2xl">
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="text-primary font-semibold text-sm tracking-widest uppercase mb-4"
+          >
+            We are providing
+          </motion.p>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="text-4xl md:text-6xl lg:text-7xl font-display font-bold mb-8"
-        >
-          <span className="text-gradient">Consulting Excellence</span>
-          <br />
-          <span className="text-foreground">for Modern Business</span>
-        </motion.h1>
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.35, duration: 0.6 }}
+            className="text-4xl md:text-5xl lg:text-6xl font-display font-extrabold text-foreground leading-tight mb-6"
+          >
+            Consulting Excellence
+            <br />
+            <span className="text-gradient">for Modern Business</span>
+          </motion.h1>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-          className="flex flex-wrap justify-center gap-3 mb-12"
-        >
-          {services.map((service, i) => (
-            <span
-              key={i}
-              className="px-4 py-2 rounded-full text-sm font-medium glow-border text-primary bg-primary/5"
-            >
-              {service}
-            </span>
-          ))}
-        </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="text-muted-foreground text-lg mb-8 max-w-lg"
+          >
+            Over 14 years of experience delivering HR, IT, and Digital solutions with our in-house team.
+          </motion.p>
 
-        <motion.button
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          onClick={() =>
-            document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })
-          }
-          className="mx-auto flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors"
-        >
-          <span className="text-sm">Explore</span>
-          <ArrowDown size={16} className="animate-bounce" />
-        </motion.button>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.65, duration: 0.6 }}
+            className="flex flex-wrap gap-2 mb-12"
+          >
+            {services.map((service) => (
+              <span
+                key={service}
+                className="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/20"
+              >
+                {service}
+              </span>
+            ))}
+          </motion.div>
+
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.6 }}
+            onClick={() =>
+              document.getElementById("about")?.scrollIntoView({ behavior: "smooth" })
+            }
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity shadow-lg"
+          >
+            Learn More
+            <ChevronDown size={16} />
+          </motion.button>
+        </div>
       </div>
     </section>
   );

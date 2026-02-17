@@ -12,39 +12,40 @@ const ClientsSection = () => {
   const isInView = useInView(ref, { once: true, margin: "-80px" });
 
   return (
-    <section id="clients" className="section-padding bg-secondary/30">
+    <section id="clients" className="section-padding section-alt">
       <div className="max-w-7xl mx-auto" ref={ref}>
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.5 }}
           className="text-center mb-16"
         >
-          <h2 className="text-3xl md:text-4xl font-display font-bold mb-3">
-            Our <span className="text-gradient">Clients</span>
+          <p className="text-primary font-semibold text-sm tracking-widest uppercase mb-2">Trusted By</p>
+          <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground mb-3">
+            Our Clients
           </h2>
-          <p className="text-muted-foreground">SAPIVI works with</p>
-          <div className="h-1 w-16 bg-primary rounded mx-auto mt-3" />
+          <div className="h-1 w-12 bg-primary rounded mx-auto" />
         </motion.div>
 
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid md:grid-cols-3 gap-6 max-w-3xl mx-auto">
           {clients.map((client, i) => (
             <motion.div
               key={client.name}
               initial={{ opacity: 0, y: 20 }}
               animate={isInView ? { opacity: 1, y: 0 } : {}}
-              transition={{ delay: i * 0.15 }}
-              className="glass-card rounded-xl p-8 flex flex-col items-center text-center"
+              transition={{ delay: i * 0.12 }}
+              className="card-elevated p-8 flex flex-col items-center text-center"
             >
-              <div className="w-20 h-20 rounded-xl bg-foreground/10 flex items-center justify-center mb-4 overflow-hidden">
+              <div className="w-20 h-20 rounded-xl bg-muted flex items-center justify-center mb-4 overflow-hidden">
                 <img
                   src={client.logo}
                   alt={client.name}
-                  className="w-16 h-16 object-contain"
+                  className="w-14 h-14 object-contain"
                 />
               </div>
-              <h3 className="font-display font-semibold text-foreground text-lg">{client.name}</h3>
+              <h3 className="font-display font-semibold text-foreground">{client.name}</h3>
               {client.subtitle && (
-                <p className="text-sm text-muted-foreground mt-1">{client.subtitle}</p>
+                <p className="text-xs text-muted-foreground mt-1">{client.subtitle}</p>
               )}
             </motion.div>
           ))}
