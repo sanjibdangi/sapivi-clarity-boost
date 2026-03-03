@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import ThemeToggle from "./ThemeToggle";
 
 const navItems = [
   { path: "/", label: "Home" },
@@ -78,9 +79,10 @@ export default function ModernNavigation() {
                 )}
               </Link>
             ))}
+            <ThemeToggle className={isScrolled ? "text-foreground" : "text-white"} />
             <Link
               to="/contact"
-              className="ml-4 px-6 py-2.5 bg-accent text-accent-foreground rounded-full font-medium hover:bg-accent/90 hover:shadow-lg hover:scale-105 transition-all"
+              className="ml-2 px-6 py-2.5 bg-accent text-accent-foreground rounded-full font-medium hover:bg-accent/90 hover:shadow-lg hover:scale-105 transition-all"
             >
               Get Started
             </Link>
