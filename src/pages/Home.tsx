@@ -41,7 +41,7 @@ export default function Home() {
   return (
     <div className="min-h-screen overflow-hidden">
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary via-secondary/95 to-primary/20 overflow-hidden pt-24 md:pt-0">
+      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary via-secondary/95 to-primary/20 overflow-hidden pt-28 md:pt-20">
         <div className="absolute inset-0 mesh-gradient opacity-40" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div className="text-center">
