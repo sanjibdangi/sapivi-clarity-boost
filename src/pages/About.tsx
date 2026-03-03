@@ -33,7 +33,7 @@ export default function About() {
   return (
     <div className="min-h-screen overflow-hidden">
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary via-secondary to-primary/20 text-white overflow-hidden pt-24 md:pt-0">
+      <section className="relative min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary via-secondary to-primary/20 text-white overflow-hidden pt-28 md:pt-20">
         <div className="absolute inset-0 mesh-gradient opacity-20" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <motion.div>
