@@ -1,87 +1,107 @@
 // API service layer for external MySQL backend
 // Configure the BASE_URL to point to your external REST API
 
-const BASE_URL = localStorage.getItem("admin_api_url") || "http://localhost:3001/api";
+import axios from "axios";
+
+const getBaseUrl = () =>
+  localStorage.getItem("admin_api_url") || "http://localhost:3001/api";
 
 export function setApiBaseUrl(url: string) {
   localStorage.setItem("admin_api_url", url);
 }
 
 export function getApiBaseUrl() {
-  return localStorage.getItem("admin_api_url") || "http://localhost:3001/api";
+  return getBaseUrl();
 }
 
-async function request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+// Create axios instance
+const api = axios.create({
+  headers: { "Content-Type": "application/json" },
+});
+
+// Request interceptor to attach token & base URL dynamically
+api.interceptors.request.use((config) => {
+  config.baseURL = getBaseUrl();
   const token = localStorage.getItem("admin_token");
-  const res = await fetch(`${getApiBaseUrl()}${endpoint}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options?.headers,
-    },
-  });
-
-  if (!res.ok) {
-    const error = await res.json().catch(() => ({ message: res.statusText }));
-    throw new Error(error.message || "API request failed");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
+  return config;
+});
 
-  return res.json();
-}
+// Response interceptor for error handling
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    const message =
+      error.response?.data?.message || error.message || "API request failed";
+    return Promise.reject(new Error(message));
+  }
+);
 
-// Auth
+// Auth & Content APIs
 export const adminApi = {
+  // Auth
   login: (email: string, password: string) =>
-    request<{ token: string; user: { id: string; email: string; name: string } }>("/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    }),
+    api
+      .post<{ token: string; user: { id: string; email: string; name: string } }>(
+        "/auth/login",
+        { email, password }
+      )
+      .then((r) => r.data),
+
+  register: (name: string, email: string, password: string) =>
+    api
+      .post<{ token: string; user: { id: string; email: string; name: string } }>(
+        "/auth/register",
+        { name, email, password }
+      )
+      .then((r) => r.data),
 
   // Hero Section
-  getHero: () => request<any>("/content/hero"),
-  updateHero: (data: any) =>
-    request("/content/hero", { method: "PUT", body: JSON.stringify(data) }),
+  getHero: () => api.get("/content/hero").then((r) => r.data),
+  updateHero: (data: any) => api.put("/content/hero", data).then((r) => r.data),
 
   // About Section
-  getAbout: () => request<any>("/content/about"),
-  updateAbout: (data: any) =>
-    request("/content/about", { method: "PUT", body: JSON.stringify(data) }),
+  getAbout: () => api.get("/content/about").then((r) => r.data),
+  updateAbout: (data: any) => api.put("/content/about", data).then((r) => r.data),
 
   // Services
-  getServices: () => request<any[]>("/content/services"),
+  getServices: () => api.get<any[]>("/content/services").then((r) => r.data),
+  createService: (data: any) => api.post("/content/services", data).then((r) => r.data),
   updateService: (id: string, data: any) =>
-    request(`/content/services/${id}`, { method: "PUT", body: JSON.stringify(data) }),
-  createService: (data: any) =>
-    request("/content/services", { method: "POST", body: JSON.stringify(data) }),
+    api.put(`/content/services/${id}`, data).then((r) => r.data),
   deleteService: (id: string) =>
-    request(`/content/services/${id}`, { method: "DELETE" }),
+    api.delete(`/content/services/${id}`).then((r) => r.data),
 
   // Portfolio
-  getPortfolio: () => request<any[]>("/content/portfolio"),
-  updatePortfolio: (id: string, data: any) =>
-    request(`/content/portfolio/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  getPortfolio: () => api.get<any[]>("/content/portfolio").then((r) => r.data),
   createPortfolio: (data: any) =>
-    request("/content/portfolio", { method: "POST", body: JSON.stringify(data) }),
+    api.post("/content/portfolio", data).then((r) => r.data),
+  updatePortfolio: (id: string, data: any) =>
+    api.put(`/content/portfolio/${id}`, data).then((r) => r.data),
   deletePortfolio: (id: string) =>
-    request(`/content/portfolio/${id}`, { method: "DELETE" }),
+    api.delete(`/content/portfolio/${id}`).then((r) => r.data),
 
   // Contact Info
-  getContactInfo: () => request<any>("/content/contact"),
+  getContactInfo: () => api.get("/content/contact").then((r) => r.data),
   updateContactInfo: (data: any) =>
-    request("/content/contact", { method: "PUT", body: JSON.stringify(data) }),
+    api.put("/content/contact", data).then((r) => r.data),
 
   // Contact Messages
-  getMessages: () => request<any[]>("/messages"),
+  getMessages: () => api.get<any[]>("/messages").then((r) => r.data),
+  submitMessage: (data: any) => api.post("/messages", data).then((r) => r.data),
   deleteMessage: (id: string) =>
-    request(`/messages/${id}`, { method: "DELETE" }),
+    api.delete(`/messages/${id}`).then((r) => r.data),
 
   // Clients
-  getClients: () => request<any[]>("/content/clients"),
-  updateClient: (id: string, data: any) =>
-    request(`/content/clients/${id}`, { method: "PUT", body: JSON.stringify(data) }),
+  getClients: () => api.get<any[]>("/content/clients").then((r) => r.data),
   createClient: (data: any) =>
-    request("/content/clients", { method: "POST", body: JSON.stringify(data) }),
+    api.post("/content/clients", data).then((r) => r.data),
+  updateClient: (id: string, data: any) =>
+    api.put(`/content/clients/${id}`, data).then((r) => r.data),
   deleteClient: (id: string) =>
-    request(`/content/clients/${id}`, { method: "DELETE" }),
+    api.delete(`/content/clients/${id}`).then((r) => r.data),
 };
+
+export default api;
