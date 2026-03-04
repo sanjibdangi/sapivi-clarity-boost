@@ -8,6 +8,8 @@ const authRoutes = require("./routes/auth");
 const userRoutes = require("./routes/user");
 const contentRoutes = require("./routes/content");
 const messageRoutes = require("./routes/messages");
+const contactRoutes = require("./routes/contact");
+const subscriberRoutes = require("./routes/subscribers");
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -17,12 +19,14 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/content", contentRoutes);
 app.use("/api/messages", messageRoutes);
-
+app.use("/api/contact", contactRoutes);
+app.use("/api/subscribers", subscriberRoutes);
 // Health check
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });

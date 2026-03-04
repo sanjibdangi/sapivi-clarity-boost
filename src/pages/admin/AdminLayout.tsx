@@ -36,13 +36,26 @@ export default function AdminLayout() {
       <aside className="hidden lg:flex flex-col w-72 bg-card border-r border-border">
         <div className="p-6 border-b border-border">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">S</span>
+
+            {/* LOGO */}
+            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center bg-white">
+              <img
+                src="/logo.png"
+                alt="SAPIVI Logo"
+                className="w-8 h-8 object-contain"
+              />
             </div>
+
+            {/* TEXT */}
             <div>
-              <span className="text-lg font-bold font-display text-foreground">SAPIVI</span>
-              <p className="text-xs text-muted-foreground">Admin Console</p>
+              <span className="text-lg font-bold font-display text-foreground">
+                SAPIVI
+              </span>
+              <p className="text-xs text-muted-foreground">
+                Admin Console
+              </p>
             </div>
+
           </Link>
         </div>
 
