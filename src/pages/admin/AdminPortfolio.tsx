@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Save, Trash2, Edit2, X } from "lucide-react";
+import { Plus, Save, Trash2, Edit2, X, Loader2 } from "lucide-react";
+import { adminApi } from "@/lib/api";
+import { toast } from "sonner";
 
 interface Project {
   id: string;
@@ -11,34 +13,43 @@ interface Project {
   tags: string[];
 }
 
-const defaultProjects: Project[] = [
-  { id: "1", title: "E-Commerce Platform", category: "Web Development", description: "Modern shopping experience with AI recommendations", image: "https://images.unsplash.com/photo-1661956602116-aa6865609028?w=800&h=600&fit=crop", tags: ["React", "Node.js", "AI"] },
-  { id: "2", title: "Social Media Campaign", category: "Digital Marketing", description: "Viral campaign reaching 2M+ impressions", image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=600&fit=crop", tags: ["Social", "Analytics"] },
-];
-
 export default function AdminPortfolio() {
-  const [projects, setProjects] = useState<Project[]>(defaultProjects);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [editing, setEditing] = useState<Project | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleDelete = (id: string) => {
-    if (confirm("Delete this project?")) setProjects(projects.filter((p) => p.id !== id));
+  const fetchProjects = () => {
+    adminApi.getPortfolio()
+      .then((data) => setProjects(data || []))
+      .catch(() => toast.error("Failed to load portfolio"))
+      .finally(() => setLoading(false));
   };
 
-  const handleEdit = (project: Project) => { setEditing({ ...project }); setIsNew(false); };
+  useEffect(() => { fetchProjects(); }, []);
 
-  const handleAdd = () => {
-    setEditing({ id: Date.now().toString(), title: "", category: "", description: "", image: "", tags: [] });
-    setIsNew(true);
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this project?")) return;
+    try {
+      await adminApi.deletePortfolio(id);
+      toast.success("Project deleted");
+      fetchProjects();
+    } catch { toast.error("Delete failed"); }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editing) return;
-    if (isNew) setProjects([...projects, editing]);
-    else setProjects(projects.map((p) => (p.id === editing.id ? editing : p)));
-    setEditing(null);
-    alert("Project saved! (Connect your MySQL API to persist)");
+    try {
+      const payload = { title: editing.title, category: editing.category, description: editing.description, image: editing.image, tags: editing.tags };
+      if (isNew) await adminApi.createPortfolio(payload);
+      else await adminApi.updatePortfolio(editing.id, payload);
+      toast.success("Project saved!");
+      setEditing(null);
+      fetchProjects();
+    } catch { toast.error("Save failed"); }
   };
+
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" size={32} /></div>;
 
   return (
     <div>
@@ -47,7 +58,7 @@ export default function AdminPortfolio() {
           <h1 className="text-3xl font-bold text-foreground font-display">Portfolio</h1>
           <p className="text-muted-foreground mt-1">Manage portfolio projects</p>
         </div>
-        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleAdd} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all">
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setEditing({ id: "", title: "", category: "", description: "", image: "", tags: [] }); setIsNew(true); }} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all">
           <Plus size={18} /> Add Project
         </motion.button>
       </div>
@@ -83,12 +94,13 @@ export default function AdminPortfolio() {
                 {project.tags.map((t, i) => <span key={i} className="px-3 py-1 bg-muted rounded-full text-xs">{t}</span>)}
               </div>
               <div className="flex gap-2 mt-4">
-                <button onClick={() => handleEdit(project)} className="flex items-center gap-1.5 px-4 py-2 bg-muted rounded-lg text-sm hover:bg-primary/10 transition-colors"><Edit2 size={14} /> Edit</button>
+                <button onClick={() => { setEditing({ ...project }); setIsNew(false); }} className="flex items-center gap-1.5 px-4 py-2 bg-muted rounded-lg text-sm hover:bg-primary/10 transition-colors"><Edit2 size={14} /> Edit</button>
                 <button onClick={() => handleDelete(project.id)} className="flex items-center gap-1.5 px-4 py-2 bg-destructive/10 text-destructive rounded-lg text-sm hover:bg-destructive/20 transition-colors"><Trash2 size={14} /> Delete</button>
               </div>
             </div>
           </motion.div>
         ))}
+        {projects.length === 0 && <p className="text-center text-muted-foreground py-12 col-span-2">No projects yet.</p>}
       </div>
     </div>
   );

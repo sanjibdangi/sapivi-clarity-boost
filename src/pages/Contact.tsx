@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
 import { Mail, MapPin, Clock, Send, Phone, MessageCircle, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { adminApi } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function Contact() {
   const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
@@ -14,29 +16,15 @@ export default function Contact() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const res = await fetch("http://localhost:3001/api/contact", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (res.ok) {
-        setSuccess(true);
-        setFormData({ name: "", email: "", subject: "", message: "" });
-
-        setTimeout(() => {
-          setSuccess(false);
-        }, 4000);
-      }
-
-    } catch (error) {
-      console.error(error);
+      await adminApi.submitMessage(formData);
+      setSuccess(true);
+      setFormData({ name: "", email: "", subject: "", message: "" });
+      toast.success("Message sent successfully!");
+      setTimeout(() => setSuccess(false), 4000);
+    } catch {
+      toast.error("Failed to send message. Please try again.");
     }
-
     setLoading(false);
   };
 
@@ -118,7 +106,7 @@ export default function Contact() {
                   <label htmlFor="message" className="block text-sm font-semibold text-foreground mb-2">Message *</label>
                   <textarea id="message" name="message" value={formData.message} onChange={handleChange} required rows={6} placeholder="Tell us about your project..." className="w-full px-6 py-4 bg-muted border-2 border-transparent rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary transition-all resize-none" />
                 </div>
-                <motion.button type="submit" whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full px-8 py-5 bg-accent text-accent-foreground rounded-2xl font-bold text-lg hover:bg-accent/90 hover:shadow-xl transition-all flex items-center justify-center space-x-2 group">
+                <motion.button type="submit" disabled={loading} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full px-8 py-5 bg-accent text-accent-foreground rounded-2xl font-bold text-lg hover:bg-accent/90 hover:shadow-xl transition-all flex items-center justify-center space-x-2 group disabled:opacity-50">
                   <span>{loading ? "Sending..." : "Send Message"}</span>
                   <Send className="group-hover:translate-x-1 transition-transform" size={20} />
                 </motion.button>
@@ -160,34 +148,18 @@ export default function Contact() {
               <h2 className="text-4xl font-bold text-foreground mb-4 font-display">Find Us Here</h2>
               <p className="text-muted-foreground text-lg">Visit our office in Bangalore</p>
             </div>
-
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.8 }}
-              >
-
-                {/* Google Map */}
-                <div className="rounded-3xl overflow-hidden shadow-2xl">
-                  <div className="aspect-[16/9] w-full">
-                    <iframe
-                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d248849.5666025283!2d77.46613243011515!3d12.954280227301371!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae1670c9b44e6d%3A0xf8dfc3e8517e4fe0!2sBengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1772605133908!5m2!1sen!2sin"
-                      className="w-full h-full border-0"
-                      loading="lazy"
-                      allowFullScreen
-                      referrerPolicy="no-referrer-when-downgrade"
-                      title="SAPIVI Location Map"
-                    ></iframe>
-                  </div>
-                </div>
-              </motion.div>
-              ```
-
+            <div className="rounded-3xl overflow-hidden shadow-2xl">
+              <div className="aspect-[16/9] w-full">
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d248849.5666025283!2d77.46613243011515!3d12.954280227301371!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae1670c9b44e6d%3A0xf8dfc3e8517e4fe0!2sBengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1772605133908!5m2!1sen!2sin"
+                  className="w-full h-full border-0"
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="SAPIVI Location Map"
+                ></iframe>
+              </div>
             </div>
-
-
           </motion.div>
         </div>
       </section>
