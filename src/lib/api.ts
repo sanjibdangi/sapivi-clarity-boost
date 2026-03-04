@@ -90,7 +90,7 @@ export const adminApi = {
 
   // Contact Messages
   getMessages: () => api.get<any[]>("/messages").then((r) => r.data),
-  submitMessage: (data: any) => api.post("/messages", data).then((r) => r.data),
+  submitMessage: (data: any) => api.post("/contact", data).then((r) => r.data),
   deleteMessage: (id: string) =>
     api.delete(`/messages/${id}`).then((r) => r.data),
 

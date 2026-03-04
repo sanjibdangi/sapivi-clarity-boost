@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Save, Trash2, Edit2, X } from "lucide-react";
+import { Plus, Save, Trash2, Edit2, X, Loader2 } from "lucide-react";
+import { adminApi } from "@/lib/api";
+import { toast } from "sonner";
 
 interface Client {
   id: string;
@@ -9,33 +11,42 @@ interface Client {
   industry: string;
 }
 
-const defaultClients: Client[] = [
-  { id: "1", name: "RE BATH", logo: "RB", industry: "Home Improvement" },
-  { id: "2", name: "Teach For All", logo: "TFA", industry: "Education" },
-  { id: "3", name: "SBDG", logo: "SB", industry: "Business Development" },
-];
-
 export default function AdminClients() {
-  const [clients, setClients] = useState<Client[]>(defaultClients);
+  const [clients, setClients] = useState<Client[]>([]);
   const [editing, setEditing] = useState<Client | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleDelete = (id: string) => {
-    if (confirm("Delete this client?")) setClients(clients.filter((c) => c.id !== id));
+  const fetchClients = () => {
+    adminApi.getClients()
+      .then((data) => setClients(data || []))
+      .catch(() => toast.error("Failed to load clients"))
+      .finally(() => setLoading(false));
   };
 
-  const handleAdd = () => {
-    setEditing({ id: Date.now().toString(), name: "", logo: "", industry: "" });
-    setIsNew(true);
+  useEffect(() => { fetchClients(); }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this client?")) return;
+    try {
+      await adminApi.deleteClient(id);
+      toast.success("Client deleted");
+      fetchClients();
+    } catch { toast.error("Delete failed"); }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editing) return;
-    if (isNew) setClients([...clients, editing]);
-    else setClients(clients.map((c) => (c.id === editing.id ? editing : c)));
-    setEditing(null);
-    alert("Client saved! (Connect your MySQL API to persist)");
+    try {
+      if (isNew) await adminApi.createClient({ name: editing.name, logo: editing.logo, industry: editing.industry });
+      else await adminApi.updateClient(editing.id, { name: editing.name, logo: editing.logo, industry: editing.industry });
+      toast.success("Client saved!");
+      setEditing(null);
+      fetchClients();
+    } catch { toast.error("Save failed"); }
   };
+
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" size={32} /></div>;
 
   return (
     <div>
@@ -44,7 +55,7 @@ export default function AdminClients() {
           <h1 className="text-3xl font-bold text-foreground font-display">Clients</h1>
           <p className="text-muted-foreground mt-1">Manage client logos and info</p>
         </div>
-        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleAdd} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90">
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setEditing({ id: "", name: "", logo: "", industry: "" }); setIsNew(true); }} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90">
           <Plus size={18} /> Add Client
         </motion.button>
       </div>
@@ -80,6 +91,7 @@ export default function AdminClients() {
             </div>
           </motion.div>
         ))}
+        {clients.length === 0 && <p className="text-center text-muted-foreground py-12 col-span-3">No clients yet.</p>}
       </div>
     </div>
   );

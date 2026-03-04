@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Plus, Save, Trash2, Edit2, X } from "lucide-react";
+import { Plus, Save, Trash2, Edit2, X, Loader2 } from "lucide-react";
+import { adminApi } from "@/lib/api";
+import { toast } from "sonner";
 
 interface Service {
   id: string;
@@ -9,44 +11,45 @@ interface Service {
   features: string[];
 }
 
-const defaultServices: Service[] = [
-  { id: "1", title: "Application Integration", description: "Seamless API integration and microservices architecture.", features: ["RESTful API Development", "Third-party Integrations", "Microservices Architecture"] },
-  { id: "2", title: "Digital Marketing", description: "Data-driven strategies to amplify your brand.", features: ["Social Media Marketing", "Content Strategy", "PPC Advertising"] },
-  { id: "3", title: "Cyber Security", description: "Enterprise-grade security solutions.", features: ["Security Audits", "Penetration Testing", "Compliance Management"] },
-  { id: "4", title: "HR Consulting", description: "AI-powered talent acquisition.", features: ["Talent Acquisition", "Staff Sourcing", "HR Technology"] },
-];
-
 export default function AdminServices() {
-  const [services, setServices] = useState<Service[]>(defaultServices);
+  const [services, setServices] = useState<Service[]>([]);
   const [editing, setEditing] = useState<Service | null>(null);
   const [isNew, setIsNew] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const handleDelete = (id: string) => {
-    if (confirm("Delete this service?")) {
-      setServices(services.filter((s) => s.id !== id));
-    }
+  const fetchServices = () => {
+    adminApi.getServices()
+      .then((data) => setServices(data || []))
+      .catch(() => toast.error("Failed to load services"))
+      .finally(() => setLoading(false));
   };
 
-  const handleEdit = (service: Service) => {
-    setEditing({ ...service });
-    setIsNew(false);
+  useEffect(() => { fetchServices(); }, []);
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Delete this service?")) return;
+    try {
+      await adminApi.deleteService(id);
+      toast.success("Service deleted");
+      fetchServices();
+    } catch { toast.error("Delete failed"); }
   };
 
-  const handleAdd = () => {
-    setEditing({ id: Date.now().toString(), title: "", description: "", features: [""] });
-    setIsNew(true);
-  };
-
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!editing) return;
-    if (isNew) {
-      setServices([...services, editing]);
-    } else {
-      setServices(services.map((s) => (s.id === editing.id ? editing : s)));
-    }
-    setEditing(null);
-    alert("Service saved! (Connect your MySQL API to persist)");
+    try {
+      if (isNew) {
+        await adminApi.createService({ title: editing.title, description: editing.description, features: editing.features });
+      } else {
+        await adminApi.updateService(editing.id, { title: editing.title, description: editing.description, features: editing.features });
+      }
+      toast.success("Service saved!");
+      setEditing(null);
+      fetchServices();
+    } catch { toast.error("Save failed"); }
   };
+
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" size={32} /></div>;
 
   return (
     <div>
@@ -55,12 +58,11 @@ export default function AdminServices() {
           <h1 className="text-3xl font-bold text-foreground font-display">Services</h1>
           <p className="text-muted-foreground mt-1">Manage service offerings</p>
         </div>
-        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleAdd} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all">
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setEditing({ id: "", title: "", description: "", features: [""] }); setIsNew(true); }} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all">
           <Plus size={18} /> Add Service
         </motion.button>
       </div>
 
-      {/* Edit Modal */}
       {editing && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }} className="bg-card rounded-2xl p-6 md:p-8 w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -69,27 +71,15 @@ export default function AdminServices() {
               <button onClick={() => setEditing(null)}><X size={20} /></button>
             </div>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold mb-2">Title</label>
-                <input type="text" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="w-full px-4 py-3 bg-muted rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2">Description</label>
-                <textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={3} className="w-full px-4 py-3 bg-muted rounded-xl focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold mb-2">Features (one per line)</label>
-                <textarea value={editing.features.join("\n")} onChange={(e) => setEditing({ ...editing, features: e.target.value.split("\n") })} rows={4} className="w-full px-4 py-3 bg-muted rounded-xl focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
-              </div>
-              <button onClick={handleSave} className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90">
-                <Save size={18} /> Save
-              </button>
+              <div><label className="block text-sm font-semibold mb-2">Title</label><input type="text" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="w-full px-4 py-3 bg-muted rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" /></div>
+              <div><label className="block text-sm font-semibold mb-2">Description</label><textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={3} className="w-full px-4 py-3 bg-muted rounded-xl focus:outline-none focus:ring-2 focus:ring-primary resize-none" /></div>
+              <div><label className="block text-sm font-semibold mb-2">Features (one per line)</label><textarea value={editing.features.join("\n")} onChange={(e) => setEditing({ ...editing, features: e.target.value.split("\n") })} rows={4} className="w-full px-4 py-3 bg-muted rounded-xl focus:outline-none focus:ring-2 focus:ring-primary resize-none" /></div>
+              <button onClick={handleSave} className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90"><Save size={18} /> Save</button>
             </div>
           </motion.div>
         </motion.div>
       )}
 
-      {/* Services List */}
       <div className="grid gap-4">
         {services.map((service, index) => (
           <motion.div key={service.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }} className="bg-card border border-border rounded-2xl p-6 flex items-start justify-between">
@@ -97,17 +87,16 @@ export default function AdminServices() {
               <h3 className="text-lg font-semibold text-foreground font-display">{service.title}</h3>
               <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
               <div className="flex flex-wrap gap-2 mt-3">
-                {service.features.map((f, i) => (
-                  <span key={i} className="px-3 py-1 bg-muted rounded-full text-xs text-muted-foreground">{f}</span>
-                ))}
+                {service.features.map((f, i) => <span key={i} className="px-3 py-1 bg-muted rounded-full text-xs text-muted-foreground">{f}</span>)}
               </div>
             </div>
             <div className="flex gap-2 ml-4 flex-shrink-0">
-              <button onClick={() => handleEdit(service)} className="p-2 hover:bg-muted rounded-lg transition-colors"><Edit2 size={16} /></button>
+              <button onClick={() => { setEditing({ ...service }); setIsNew(false); }} className="p-2 hover:bg-muted rounded-lg transition-colors"><Edit2 size={16} /></button>
               <button onClick={() => handleDelete(service.id)} className="p-2 hover:bg-destructive/10 text-destructive rounded-lg transition-colors"><Trash2 size={16} /></button>
             </div>
           </motion.div>
         ))}
+        {services.length === 0 && <p className="text-center text-muted-foreground py-12">No services yet. Add one to get started.</p>}
       </div>
     </div>
   );

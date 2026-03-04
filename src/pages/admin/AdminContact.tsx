@@ -1,19 +1,56 @@
-import { useState } from "react";
-import { Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Save, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { adminApi } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function AdminContact() {
   const [data, setData] = useState({
-    email: "contact@sapivi.com",
-    phone: "+91 80 1234 5678",
-    address: "No:58, 5th Main Krishna Niwas, Halasahalli, Bangalore, Karnataka, India 560087",
-    cin: "U72900KA2021PTC155725",
-    businessHours: "Mon-Fri: 9AM - 6PM IST",
+    email: "",
+    phone: "",
+    address: "",
+    cin: "",
+    businessHours: "",
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
-    alert("Contact info saved! (Connect your MySQL API to persist)");
+  useEffect(() => {
+    adminApi.getContactInfo()
+      .then((res) => {
+        if (res) {
+          setData({
+            email: res.email || "",
+            phone: res.phone || "",
+            address: res.address || "",
+            cin: res.cin || "",
+            businessHours: res.business_hours || "",
+          });
+        }
+      })
+      .catch(() => toast.error("Failed to load contact info"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await adminApi.updateContactInfo({
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        cin: data.cin,
+        business_hours: data.businessHours,
+      });
+      toast.success("Contact info saved!");
+    } catch {
+      toast.error("Failed to save.");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" size={32} /></div>;
 
   return (
     <div>
@@ -22,8 +59,9 @@ export default function AdminContact() {
           <h1 className="text-3xl font-bold text-foreground font-display">Contact Info</h1>
           <p className="text-muted-foreground mt-1">Edit contact details shown on the website</p>
         </div>
-        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSave} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90">
-          <Save size={18} /> Save Changes
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 disabled:opacity-50">
+          {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+          {saving ? "Saving..." : "Save Changes"}
         </motion.button>
       </div>
 

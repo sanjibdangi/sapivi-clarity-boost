@@ -1,18 +1,53 @@
-import { useState } from "react";
-import { Save } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Save, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { adminApi } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function AdminAbout() {
   const [data, setData] = useState({
-    mission: "To empower businesses worldwide with innovative technology solutions that drive growth, efficiency, and competitive advantage in the digital era.",
-    vision: "To be the global leader in integrated business solutions, recognized for our innovation, expertise, and unwavering commitment to client success.",
-    heroHeadline: "Crafting Digital Excellence Since 2010",
-    heroDescription: "We're a team of innovators, designers, and developers passionate about transforming businesses through technology.",
+    mission: "",
+    vision: "",
+    heroHeadline: "",
+    heroDescription: "",
   });
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
-    alert("About content saved! (Connect your MySQL API to persist)");
+  useEffect(() => {
+    adminApi.getAbout()
+      .then((res) => {
+        if (res) {
+          setData({
+            mission: res.mission || "",
+            vision: res.vision || "",
+            heroHeadline: res.hero_headline || "",
+            heroDescription: res.hero_description || "",
+          });
+        }
+      })
+      .catch(() => toast.error("Failed to load about content"))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await adminApi.updateAbout({
+        hero_headline: data.heroHeadline,
+        hero_description: data.heroDescription,
+        mission: data.mission,
+        vision: data.vision,
+      });
+      toast.success("About content saved!");
+    } catch {
+      toast.error("Failed to save.");
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" size={32} /></div>;
 
   return (
     <div>
@@ -21,8 +56,9 @@ export default function AdminAbout() {
           <h1 className="text-3xl font-bold text-foreground font-display">About Content</h1>
           <p className="text-muted-foreground mt-1">Edit the About page content</p>
         </div>
-        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSave} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90">
-          <Save size={18} /> Save Changes
+        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 disabled:opacity-50">
+          {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+          {saving ? "Saving..." : "Save Changes"}
         </motion.button>
       </div>
 

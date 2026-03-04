@@ -1,29 +1,56 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Save } from "lucide-react";
+import { Save, Loader2 } from "lucide-react";
+import { adminApi } from "@/lib/api";
+import { toast } from "sonner";
 
 export default function AdminHero() {
   const [data, setData] = useState({
-    badge: "Transforming Businesses Since 2010",
-    headline: "Innovate. Integrate. Dominate.",
-    description: "We transform businesses with cutting-edge digital solutions, AI-powered HR consulting, and enterprise-grade technology.",
-    ctaPrimary: "Start Your Project",
-    ctaSecondary: "View Our Work",
+    badge: "",
+    headline: "",
+    description: "",
+    ctaPrimary: "",
+    ctaSecondary: "",
   });
-
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    adminApi.getHero()
+      .then((res) => {
+        if (res && res.badge) {
+          setData({
+            badge: res.badge || "",
+            headline: res.headline || "",
+            description: res.description || "",
+            ctaPrimary: res.cta_primary || "",
+            ctaSecondary: res.cta_secondary || "",
+          });
+        }
+      })
+      .catch(() => toast.error("Failed to load hero content"))
+      .finally(() => setLoading(false));
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      // await adminApi.updateHero(data);
-      alert("Hero section updated! (Connect your MySQL API to persist changes)");
-    } catch (err) {
-      alert("Failed to save. Make sure your API is running.");
+      await adminApi.updateHero({
+        badge: data.badge,
+        headline: data.headline,
+        description: data.description,
+        cta_primary: data.ctaPrimary,
+        cta_secondary: data.ctaSecondary,
+      });
+      toast.success("Hero section updated!");
+    } catch {
+      toast.error("Failed to save. Make sure your API is running.");
     } finally {
       setSaving(false);
     }
   };
+
+  if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" size={32} /></div>;
 
   return (
     <div>
@@ -33,7 +60,7 @@ export default function AdminHero() {
           <p className="text-muted-foreground mt-1">Edit the homepage hero content</p>
         </div>
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSave} disabled={saving} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all disabled:opacity-50">
-          <Save size={18} />
+          {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
           {saving ? "Saving..." : "Save Changes"}
         </motion.button>
       </div>
