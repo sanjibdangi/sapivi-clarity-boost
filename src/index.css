@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
@@ -57,7 +57,12 @@
     font-family: 'Inter', sans-serif;
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     font-family: 'Outfit', sans-serif;
   }
 }
@@ -98,7 +103,7 @@
   }
 
   .mesh-gradient {
-    background: 
+    background:
       radial-gradient(at 40% 20%, hsl(174 84% 32% / 0.3) 0px, transparent 50%),
       radial-gradient(at 80% 0%, hsl(200 80% 50% / 0.2) 0px, transparent 50%),
       radial-gradient(at 0% 50%, hsl(350 80% 55% / 0.15) 0px, transparent 50%),

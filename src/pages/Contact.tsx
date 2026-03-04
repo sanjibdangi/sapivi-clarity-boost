@@ -131,15 +131,34 @@ export default function Contact() {
               <h2 className="text-4xl font-bold text-foreground mb-4 font-display">Find Us Here</h2>
               <p className="text-muted-foreground text-lg">Visit our office in Bangalore</p>
             </div>
-            <div className="rounded-3xl overflow-hidden shadow-2xl">
-              <div className="aspect-[16/9] bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
-                <div className="text-center">
-                  <MapPin className="mx-auto mb-4 text-primary" size={64} />
-                  <p className="text-2xl font-bold text-foreground mb-2 font-display">Bangalore, Karnataka, India</p>
-                  <p className="text-muted-foreground">Interactive map integration available</p>
-                </div>
+            <section className="py-24 bg-muted" id="map">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <motion.div
+                  initial={{ opacity: 0, y: 30 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.8 }}
+                >
+
+                  {/* Google Map */}
+                  <div className="rounded-3xl overflow-hidden shadow-2xl">
+                    <div className="aspect-[16/9] w-full">
+                      <iframe
+                        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d248849.5666025283!2d77.46613243011515!3d12.954280227301371!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae1670c9b44e6d%3A0xf8dfc3e8517e4fe0!2sBengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1772605133908!5m2!1sen!2sin"
+                        className="w-full h-full border-0"
+                        loading="lazy"
+                        allowFullScreen
+                        referrerPolicy="no-referrer-when-downgrade"
+                        title="SAPIVI Location Map"
+                      ></iframe>
+                    </div>
+                  </div>
+                </motion.div>
+                ```
+
               </div>
-            </div>
+            </section>
+
           </motion.div>
         </div>
       </section>
