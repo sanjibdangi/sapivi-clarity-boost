@@ -31,7 +31,15 @@ export default function Portfolio() {
   useEffect(() => {
     adminApi.getPortfolio()
       .then((res) => {
-        if (Array.isArray(res)) setProjects(res);
+        const data = res?.data || res;
+        if (Array.isArray(data)) {
+          setProjects(data.map((p: any) => ({
+            ...p,
+            id: String(p.id),
+            tags: Array.isArray(p.tags) ? p.tags :
+              (typeof p.tags === 'string' ? JSON.parse(p.tags) : [])
+          })));
+        }
       })
       .catch((err) => console.error("Error fetching portfolio:", err))
       .finally(() => setLoading(false));

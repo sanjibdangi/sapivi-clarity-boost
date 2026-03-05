@@ -35,7 +35,14 @@ export default function Services() {
   useEffect(() => {
     adminApi.getServices()
       .then((res) => {
-        if (Array.isArray(res)) setServices(res);
+        const data = res?.data || res;
+        if (Array.isArray(data)) {
+          setServices(data.map((item: any) => ({
+            ...item,
+            features: Array.isArray(item.features) ? item.features :
+              (typeof item.features === 'string' ? JSON.parse(item.features) : [])
+          })));
+        }
       })
       .catch((err) => console.error("Failed to fetch services:", err))
       .finally(() => setLoading(false));

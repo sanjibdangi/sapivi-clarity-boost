@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Plus, Save, Trash2, Edit2, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { adminApi } from "@/lib/api";
 
 interface Service {
   id: string;
@@ -16,21 +17,19 @@ export default function AdminServices() {
   const [isNew, setIsNew] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/services` : "/api/services";
-
   const fetchServices = () => {
-    fetch(API_URL)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success) {
-          // Convert database IDs (which might be numbers) to strings for the frontend
-          const formattedData = json.data.map((item: any) => ({
+    setLoading(true);
+    adminApi.getServices()
+      .then((res) => {
+        // Handle both {success, data} and direct array responses
+        const data = res?.data || res;
+        if (Array.isArray(data)) {
+          setServices(data.map((item: any) => ({
             ...item,
-            id: String(item.id)
-          }));
-          setServices(formattedData || []);
-        } else {
-          toast.error("Failed to load services");
+            id: String(item.id),
+            features: Array.isArray(item.features) ? item.features : 
+              (typeof item.features === 'string' ? JSON.parse(item.features) : [])
+          })));
         }
       })
       .catch((err) => {
@@ -47,14 +46,9 @@ export default function AdminServices() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this service?")) return;
     try {
-      const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-      const json = await res.json();
-      if (json.success) {
-        toast.success("Service deleted");
-        fetchServices();
-      } else {
-        toast.error("Delete failed");
-      }
+      await adminApi.deleteService(id);
+      toast.success("Service deleted");
+      fetchServices();
     } catch {
       toast.error("Delete failed");
     }
@@ -63,31 +57,21 @@ export default function AdminServices() {
   const handleSave = async () => {
     if (!editing) return;
     try {
-      const method = isNew ? "POST" : "PUT";
-      const url = isNew ? API_URL : `${API_URL}/${editing.id}`;
-
-      // Clean up empty lines in features array
       const cleanedFeatures = editing.features.filter(f => f.trim() !== "");
+      const payload = {
+        title: editing.title,
+        description: editing.description,
+        features: cleanedFeatures
+      };
 
-      const res = await fetch(url, {
-        method: method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: editing.title,
-          description: editing.description,
-          features: cleanedFeatures
-        })
-      });
-
-      const json = await res.json();
-
-      if (json.success) {
-        toast.success("Service saved!");
-        setEditing(null);
-        fetchServices();
+      if (isNew) {
+        await adminApi.createService(payload);
       } else {
-        toast.error("Save failed");
+        await adminApi.updateService(editing.id, payload);
       }
+      toast.success("Service saved!");
+      setEditing(null);
+      fetchServices();
     } catch {
       toast.error("Save failed");
     }

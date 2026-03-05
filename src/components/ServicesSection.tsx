@@ -25,7 +25,8 @@ const ServicesSection = () => {
 
   useEffect(() => {
     adminApi.getServices()
-      .then((data) => {
+      .then((res) => {
+        const data = res?.data || res;
         if (Array.isArray(data) && data.length > 0) {
           setServices(data.map((s: any) => ({
             icon: iconMap[s.title] || Globe,
