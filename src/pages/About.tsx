@@ -1,7 +1,35 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Users, Target, Award, TrendingUp, Zap, Shield, Globe, Heart, Sparkles, CheckCircle2 } from "lucide-react";
 
 export default function About() {
+  // NEW: State to hold your dynamic About content
+  const [aboutContent, setAboutContent] = useState({
+    heroHeadline: "Crafting Digital\nExcellence Since 2010",
+    heroDescription: "We're a team of innovators, designers, and developers passionate about transforming businesses through technology.",
+    mission: "To empower businesses worldwide with innovative technology solutions that drive growth, efficiency, and competitive advantage in the digital era.",
+    vision: "To be the global leader in integrated business solutions, recognized for our innovation, expertise, and unwavering commitment to client success."
+  });
+
+  // NEW: Fetch the dynamic About content from the database
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/about` : "/api/about";
+
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setAboutContent({
+            heroHeadline: json.data.hero_headline || "Crafting Digital\nExcellence Since 2010",
+            heroDescription: json.data.hero_description || "We're a team of innovators, designers, and developers passionate about transforming businesses through technology.",
+            mission: json.data.mission || "To empower businesses worldwide with innovative technology solutions that drive growth, efficiency, and competitive advantage in the digital era.",
+            vision: json.data.vision || "To be the global leader in integrated business solutions, recognized for our innovation, expertise, and unwavering commitment to client success."
+          });
+        }
+      })
+      .catch((err) => console.error("Failed to fetch about content:", err));
+  }, []);
+
   const stats = [
     { value: "14+", label: "Years Experience", icon: Award },
     { value: "500+", label: "Happy Clients", icon: Users },
@@ -41,12 +69,17 @@ export default function About() {
               <Sparkles className="text-primary" size={16} />
               <span>About SAPIVI</span>
             </div>
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight font-display">
-              Crafting Digital<br /><span className="text-primary">Excellence</span> Since 2010
+
+            {/* DYNAMIC HEADLINE (Added whitespace-pre-line) */}
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-6 tracking-tight font-display whitespace-pre-line">
+              {aboutContent.heroHeadline}
             </h1>
+
+            {/* DYNAMIC DESCRIPTION */}
             <p className="text-xl md:text-2xl text-white/80 max-w-3xl mx-auto mb-12 leading-relaxed">
-              We're a team of innovators, designers, and developers passionate about transforming businesses through technology.
+              {aboutContent.heroDescription}
             </p>
+
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16">
               {stats.map((stat, index) => (
                 <motion.div key={index} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }} className="glass-dark p-6 rounded-2xl hover:bg-white/10 transition-all group">
@@ -68,15 +101,17 @@ export default function About() {
             <motion.div initial={{ opacity: 0, x: -30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="p-12 bg-gradient-to-br from-primary to-cyan-600 text-white rounded-3xl">
               <Target className="mb-6" size={48} />
               <h2 className="text-4xl font-bold mb-6 font-display">Our Mission</h2>
-              <p className="text-white/90 text-lg leading-relaxed">
-                To empower businesses worldwide with innovative technology solutions that drive growth, efficiency, and competitive advantage in the digital era.
+              {/* DYNAMIC MISSION */}
+              <p className="text-white/90 text-lg leading-relaxed whitespace-pre-line">
+                {aboutContent.mission}
               </p>
             </motion.div>
             <motion.div initial={{ opacity: 0, x: 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 0.8 }} className="p-12 bg-gradient-to-br from-secondary to-secondary/90 text-white rounded-3xl">
               <TrendingUp className="mb-6" size={48} />
               <h2 className="text-4xl font-bold mb-6 font-display">Our Vision</h2>
-              <p className="text-white/90 text-lg leading-relaxed">
-                To be the global leader in integrated business solutions, recognized for our innovation, expertise, and unwavering commitment to client success.
+              {/* DYNAMIC VISION */}
+              <p className="text-white/90 text-lg leading-relaxed whitespace-pre-line">
+                {aboutContent.vision}
               </p>
             </motion.div>
           </div>

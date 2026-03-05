@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Plus, Save, Trash2, Edit2, X, Loader2 } from "lucide-react";
-import { adminApi } from "@/lib/api";
 import { toast } from "sonner";
 
 interface Service {
@@ -17,36 +16,81 @@ export default function AdminServices() {
   const [isNew, setIsNew] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/services` : "/api/services";
+
   const fetchServices = () => {
-    adminApi.getServices()
-      .then((data) => setServices(data || []))
-      .catch(() => toast.error("Failed to load services"))
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) {
+          // Convert database IDs (which might be numbers) to strings for the frontend
+          const formattedData = json.data.map((item: any) => ({
+            ...item,
+            id: String(item.id)
+          }));
+          setServices(formattedData || []);
+        } else {
+          toast.error("Failed to load services");
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        toast.error("Failed to load services");
+      })
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchServices(); }, []);
+  useEffect(() => {
+    fetchServices();
+  }, []);
 
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this service?")) return;
     try {
-      await adminApi.deleteService(id);
-      toast.success("Service deleted");
-      fetchServices();
-    } catch { toast.error("Delete failed"); }
+      const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (json.success) {
+        toast.success("Service deleted");
+        fetchServices();
+      } else {
+        toast.error("Delete failed");
+      }
+    } catch {
+      toast.error("Delete failed");
+    }
   };
 
   const handleSave = async () => {
     if (!editing) return;
     try {
-      if (isNew) {
-        await adminApi.createService({ title: editing.title, description: editing.description, features: editing.features });
+      const method = isNew ? "POST" : "PUT";
+      const url = isNew ? API_URL : `${API_URL}/${editing.id}`;
+
+      // Clean up empty lines in features array
+      const cleanedFeatures = editing.features.filter(f => f.trim() !== "");
+
+      const res = await fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editing.title,
+          description: editing.description,
+          features: cleanedFeatures
+        })
+      });
+
+      const json = await res.json();
+
+      if (json.success) {
+        toast.success("Service saved!");
+        setEditing(null);
+        fetchServices();
       } else {
-        await adminApi.updateService(editing.id, { title: editing.title, description: editing.description, features: editing.features });
+        toast.error("Save failed");
       }
-      toast.success("Service saved!");
-      setEditing(null);
-      fetchServices();
-    } catch { toast.error("Save failed"); }
+    } catch {
+      toast.error("Save failed");
+    }
   };
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" size={32} /></div>;
@@ -58,7 +102,12 @@ export default function AdminServices() {
           <h1 className="text-3xl font-bold text-foreground font-display">Services</h1>
           <p className="text-muted-foreground mt-1">Manage service offerings</p>
         </div>
-        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setEditing({ id: "", title: "", description: "", features: [""] }); setIsNew(true); }} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all">
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => { setEditing({ id: "", title: "", description: "", features: [""] }); setIsNew(true); }}
+          className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all"
+        >
           <Plus size={18} /> Add Service
         </motion.button>
       </div>
@@ -71,10 +120,21 @@ export default function AdminServices() {
               <button onClick={() => setEditing(null)}><X size={20} /></button>
             </div>
             <div className="space-y-4">
-              <div><label className="block text-sm font-semibold mb-2">Title</label><input type="text" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="w-full px-4 py-3 bg-muted rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" /></div>
-              <div><label className="block text-sm font-semibold mb-2">Description</label><textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={3} className="w-full px-4 py-3 bg-muted rounded-xl focus:outline-none focus:ring-2 focus:ring-primary resize-none" /></div>
-              <div><label className="block text-sm font-semibold mb-2">Features (one per line)</label><textarea value={editing.features.join("\n")} onChange={(e) => setEditing({ ...editing, features: e.target.value.split("\n") })} rows={4} className="w-full px-4 py-3 bg-muted rounded-xl focus:outline-none focus:ring-2 focus:ring-primary resize-none" /></div>
-              <button onClick={handleSave} className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90"><Save size={18} /> Save</button>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Title</label>
+                <input type="text" value={editing.title} onChange={(e) => setEditing({ ...editing, title: e.target.value })} className="w-full px-4 py-3 bg-muted rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Description</label>
+                <textarea value={editing.description} onChange={(e) => setEditing({ ...editing, description: e.target.value })} rows={3} className="w-full px-4 py-3 bg-muted rounded-xl focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold mb-2">Features (one per line)</label>
+                <textarea value={editing.features.join("\n")} onChange={(e) => setEditing({ ...editing, features: e.target.value.split("\n") })} rows={4} className="w-full px-4 py-3 bg-muted rounded-xl focus:outline-none focus:ring-2 focus:ring-primary resize-none" />
+              </div>
+              <button onClick={handleSave} className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90">
+                <Save size={18} /> Save
+              </button>
             </div>
           </motion.div>
         </motion.div>

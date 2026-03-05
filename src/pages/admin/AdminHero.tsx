@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Save, Loader2 } from "lucide-react";
-import { adminApi } from "@/lib/api";
 import { toast } from "sonner";
 
 export default function AdminHero() {
@@ -15,35 +14,58 @@ export default function AdminHero() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // Uses your environment API URL if it exists, otherwise defaults to relative path
+  const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/hero` : "/api/hero";
+
   useEffect(() => {
-    adminApi.getHero()
-      .then((res) => {
-        if (res && res.badge) {
+    // 1. Fetch real data from your MySQL database
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
           setData({
-            badge: res.badge || "",
-            headline: res.headline || "",
-            description: res.description || "",
-            ctaPrimary: res.cta_primary || "",
-            ctaSecondary: res.cta_secondary || "",
+            badge: json.data.badge_text || "",
+            headline: json.data.headline || "",
+            description: json.data.description || "",
+            ctaPrimary: json.data.primary_cta || "",
+            ctaSecondary: json.data.secondary_cta || "",
           });
         }
       })
-      .catch(() => toast.error("Failed to load hero content"))
+      .catch((err) => {
+        console.error("Fetch error:", err);
+        toast.error("Failed to load hero content from database");
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await adminApi.updateHero({
-        badge: data.badge,
-        headline: data.headline,
-        description: data.description,
-        cta_primary: data.ctaPrimary,
-        cta_secondary: data.ctaSecondary,
+      // 2. Send updated data back to your backend
+      const response = await fetch(API_URL, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          badge_text: data.badge,
+          headline: data.headline,
+          description: data.description,
+          primary_cta: data.ctaPrimary,
+          secondary_cta: data.ctaSecondary,
+        }),
       });
-      toast.success("Hero section updated!");
-    } catch {
+
+      const json = await response.json();
+
+      if (json.success) {
+        toast.success("Hero section updated in database!");
+      } else {
+        toast.error(json.message || "Failed to update database.");
+      }
+    } catch (error) {
+      console.error("Save error:", error);
       toast.error("Failed to save. Make sure your API is running.");
     } finally {
       setSaving(false);

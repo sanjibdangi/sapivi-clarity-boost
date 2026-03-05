@@ -6,6 +6,37 @@ import { useState, useEffect } from "react";
 export default function Home() {
   const [stats, setStats] = useState({ years: 0, clients: 0, projects: 0, satisfaction: 0 });
 
+  // NEW: State to hold your dynamic hero content
+  const [heroContent, setHeroContent] = useState({
+    badge: "Transforming Businesses Since 2010",
+    headline: "Innovate.\nIntegrate.\nDominate.",
+    description: "We transform businesses with cutting-edge digital solutions, AI-powered HR consulting, and enterprise-grade technology.",
+    cta_primary: "Start Your Project",
+    cta_secondary: "View Our Work"
+  });
+
+  // NEW: Fetch the dynamic hero content from the database
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/hero` : "/api/hero";
+
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          // Update state with database values, keeping fallbacks just in case
+          setHeroContent({
+            badge: json.data.badge || "Transforming Businesses Since 2010",
+            headline: json.data.headline || "Innovate.\nIntegrate.\nDominate.",
+            description: json.data.description || "We transform businesses with cutting-edge digital solutions, AI-powered HR consulting, and enterprise-grade technology.",
+            cta_primary: json.data.cta_primary || "Start Your Project",
+            cta_secondary: json.data.cta_secondary || "View Our Work"
+          });
+        }
+      })
+      .catch((err) => console.error("Failed to fetch hero content:", err));
+  }, []);
+
+  // Existing stats animation
   useEffect(() => {
     const duration = 2000;
     const steps = 60;
@@ -45,28 +76,32 @@ export default function Home() {
         <div className="absolute inset-0 mesh-gradient opacity-40" />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div className="text-center">
+
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="inline-flex items-center space-x-2 px-4 py-2 glass-dark rounded-full mb-8">
               <Sparkles className="text-primary" size={16} />
-              <span className="text-sm text-white font-medium">Transforming Businesses Since 2010</span>
+              {/* DYNAMIC BADGE */}
+              <span className="text-sm text-white font-medium">{heroContent.badge}</span>
             </motion.div>
 
-            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight font-display">
-              Innovate.<br />
-              <span className="text-primary">Integrate.</span><br />
-              Dominate.
+            {/* DYNAMIC HEADLINE (Added whitespace-pre-line to support line breaks) */}
+            <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2 }} className="text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight font-display whitespace-pre-line">
+              {heroContent.headline}
             </motion.h1>
 
+            {/* DYNAMIC DESCRIPTION */}
             <motion.p initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.4 }} className="text-xl md:text-2xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
-              We transform businesses with cutting-edge digital solutions, AI-powered HR consulting, and enterprise-grade technology.
+              {heroContent.description}
             </motion.p>
 
             <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.6 }} className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link to="/contact" className="group px-8 py-4 bg-accent text-accent-foreground rounded-full font-semibold hover:bg-accent/90 hover:shadow-2xl hover:scale-105 transition-all flex items-center space-x-2">
-                <span>Start Your Project</span>
+                {/* DYNAMIC PRIMARY CTA */}
+                <span>{heroContent.cta_primary}</span>
                 <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
               </Link>
               <Link to="/portfolio" className="px-8 py-4 glass-dark text-white rounded-full font-semibold hover:bg-white/20 transition-all">
-                View Our Work
+                {/* DYNAMIC SECONDARY CTA */}
+                {heroContent.cta_secondary}
               </Link>
             </motion.div>
 

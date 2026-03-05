@@ -1,29 +1,56 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { ExternalLink, ArrowRight, Sparkles } from "lucide-react";
-import { useState } from "react";
+import { ExternalLink, ArrowRight, Sparkles, Loader2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+
+interface Project {
+  id: string;
+  title: string;
+  category: string;
+  description: string;
+  image: string;
+  tags: string[];
+}
 
 export default function Portfolio() {
   const [activeFilter, setActiveFilter] = useState("All");
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filters = ["All", "Web Development", "Digital Marketing", "Mobile Apps", "Branding"];
-
-  const projects = [
-    { id: 1, title: "E-Commerce Platform", category: "Web Development", description: "Modern shopping experience with AI recommendations", image: "https://images.unsplash.com/photo-1661956602116-aa6865609028?w=800&h=600&fit=crop", tags: ["React", "Node.js", "AI"], gradient: "from-cyan-500 to-blue-500" },
-    { id: 2, title: "Social Media Campaign", category: "Digital Marketing", description: "Viral campaign reaching 2M+ impressions", image: "https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=800&h=600&fit=crop", tags: ["Social", "Analytics", "Content"], gradient: "from-purple-500 to-pink-500" },
-    { id: 3, title: "Finance Mobile App", category: "Mobile Apps", description: "Secure banking app with biometric auth", image: "https://images.unsplash.com/photo-1551650975-87deedd944c3?w=800&h=600&fit=crop", tags: ["React Native", "Security"], gradient: "from-emerald-500 to-teal-500" },
-    { id: 4, title: "Tech Startup Rebrand", category: "Branding", description: "Complete brand identity transformation", image: "https://images.unsplash.com/photo-1634942537034-2531766767d1?w=800&h=600&fit=crop", tags: ["Design", "Strategy"], gradient: "from-amber-500 to-orange-500" },
-    { id: 5, title: "SaaS Dashboard", category: "Web Development", description: "Analytics platform for enterprise clients", image: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=600&fit=crop", tags: ["Vue.js", "Analytics"], gradient: "from-blue-500 to-indigo-500" },
-    { id: 6, title: "SEO Optimization", category: "Digital Marketing", description: "300% organic traffic increase in 6 months", image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&h=600&fit=crop", tags: ["SEO", "Content"], gradient: "from-rose-500 to-pink-500" },
+  // Gradient pool to keep things colorful
+  const gradients = [
+    "from-cyan-500 to-blue-500",
+    "from-purple-500 to-pink-500",
+    "from-emerald-500 to-teal-500",
+    "from-amber-500 to-orange-500",
+    "from-blue-500 to-indigo-500",
+    "from-rose-500 to-pink-500",
   ];
+
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/portfolio` : "/api/portfolio";
+
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success) setProjects(json.data);
+      })
+      .catch((err) => console.error("Error fetching portfolio:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // Dynamically generate filter list from the actual data
+  const filters = ["All", ...Array.from(new Set(projects.map((p) => p.category)))];
+
+  const filteredProjects = activeFilter === "All"
+    ? projects
+    : projects.filter(p => p.category === activeFilter);
 
   const clients = [
     { name: "RE BATH", logo: "RB", industry: "Home Improvement", gradient: "from-cyan-500 to-blue-500" },
     { name: "Teach For All", logo: "TFA", industry: "Education", gradient: "from-purple-500 to-pink-500" },
     { name: "SBDG", logo: "SB", industry: "Business Development", gradient: "from-emerald-500 to-teal-500" },
   ];
-
-  const filteredProjects = activeFilter === "All" ? projects : projects.filter(p => p.category === activeFilter);
 
   return (
     <div className="min-h-screen">
@@ -47,7 +74,13 @@ export default function Portfolio() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-wrap justify-center gap-3">
             {filters.map((filter) => (
-              <motion.button key={filter} onClick={() => setActiveFilter(filter)} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className={`px-6 py-2.5 rounded-full font-medium transition-all ${activeFilter === filter ? "bg-primary text-primary-foreground shadow-lg" : "bg-card text-foreground border border-border hover:border-primary/50"}`}>
+              <motion.button
+                key={filter}
+                onClick={() => setActiveFilter(filter)}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className={`px-6 py-2.5 rounded-full font-medium transition-all ${activeFilter === filter ? "bg-primary text-primary-foreground shadow-lg" : "bg-card text-foreground border border-border hover:border-primary/50"}`}
+              >
                 {filter}
               </motion.button>
             ))}
@@ -59,37 +92,54 @@ export default function Portfolio() {
       <section className="py-24 bg-background relative">
         <div className="absolute inset-0 mesh-gradient opacity-10" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <AnimatePresence mode="popLayout">
-              {filteredProjects.map((project) => (
-                <motion.div key={project.id} layout initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.3 }} whileHover={{ y: -12, scale: 1.02 }} className="group relative overflow-hidden rounded-3xl cursor-pointer">
-                  <div className="aspect-[4/3] overflow-hidden bg-muted">
-                    <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
-                  </div>
-                  <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient} opacity-0 group-hover:opacity-95 transition-opacity duration-300`}>
-                    <div className="absolute inset-0 p-8 flex flex-col justify-end">
-                      <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                        <div className="flex items-center space-x-2 mb-3">
-                          {project.tags.map((tag, idx) => (
-                            <span key={idx} className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium text-white">{tag}</span>
-                          ))}
-                        </div>
-                        <h3 className="text-2xl font-bold text-white mb-2 font-display">{project.title}</h3>
-                        <p className="text-white/90 mb-4">{project.description}</p>
-                        <div className="flex items-center text-white font-semibold">
-                          <span>View Case Study</span>
-                          <ExternalLink className="ml-2" size={18} />
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="animate-spin text-primary" size={48} />
+            </div>
+          ) : (
+            <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              <AnimatePresence mode="popLayout">
+                {filteredProjects.map((project, index) => (
+                  <motion.div
+                    key={project.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.3 }}
+                    whileHover={{ y: -12, scale: 1.02 }}
+                    className="group relative overflow-hidden rounded-3xl cursor-pointer"
+                  >
+                    <div className="aspect-[4/3] overflow-hidden bg-muted">
+                      <img src={project.image} alt={project.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
+                    </div>
+
+                    {/* Hover Overlay using Cyclic Gradients */}
+                    <div className={`absolute inset-0 bg-gradient-to-br ${gradients[index % gradients.length]} opacity-0 group-hover:opacity-95 transition-opacity duration-300`}>
+                      <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                        <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                          <div className="flex flex-wrap gap-2 mb-3">
+                            {project.tags.map((tag, idx) => (
+                              <span key={idx} className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-xs font-medium text-white">{tag}</span>
+                            ))}
+                          </div>
+                          <h3 className="text-2xl font-bold text-white mb-2 font-display">{project.title}</h3>
+                          <p className="text-white/90 mb-4 line-clamp-2">{project.description}</p>
+                          <div className="flex items-center text-white font-semibold">
+                            <span>View Case Study</span>
+                            <ExternalLink className="ml-2" size={18} />
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-semibold text-foreground">{project.category}</div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
+                    <div className="absolute top-4 right-4 px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-xs font-semibold text-foreground">{project.category}</div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          )}
 
-          {filteredProjects.length === 0 && (
+          {!loading && filteredProjects.length === 0 && (
             <div className="text-center py-20">
               <p className="text-2xl text-muted-foreground">No projects found in this category.</p>
             </div>
@@ -97,7 +147,7 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* Clients */}
+      {/* Clients Section (Static) */}
       <section className="py-32 bg-gradient-to-br from-secondary to-secondary/90 text-white relative overflow-hidden">
         <div className="absolute inset-0 mesh-gradient opacity-10" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

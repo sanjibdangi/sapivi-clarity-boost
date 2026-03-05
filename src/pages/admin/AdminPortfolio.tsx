@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Plus, Save, Trash2, Edit2, X, Loader2 } from "lucide-react";
-import { adminApi } from "@/lib/api";
 import { toast } from "sonner";
 
 interface Project {
@@ -19,9 +18,14 @@ export default function AdminPortfolio() {
   const [isNew, setIsNew] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/portfolio` : "/api/portfolio";
+
   const fetchProjects = () => {
-    adminApi.getPortfolio()
-      .then((data) => setProjects(data || []))
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(json => {
+        if (json.success) setProjects(json.data.map((p: any) => ({ ...p, id: String(p.id) })));
+      })
       .catch(() => toast.error("Failed to load portfolio"))
       .finally(() => setLoading(false));
   };
@@ -31,31 +35,39 @@ export default function AdminPortfolio() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this project?")) return;
     try {
-      await adminApi.deletePortfolio(id);
-      toast.success("Project deleted");
-      fetchProjects();
+      const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      if ((await res.json()).success) {
+        toast.success("Project deleted");
+        fetchProjects();
+      }
     } catch { toast.error("Delete failed"); }
   };
 
   const handleSave = async () => {
     if (!editing) return;
     try {
-      const payload = { title: editing.title, category: editing.category, description: editing.description, image: editing.image, tags: editing.tags };
-      if (isNew) await adminApi.createPortfolio(payload);
-      else await adminApi.updatePortfolio(editing.id, payload);
-      toast.success("Project saved!");
-      setEditing(null);
-      fetchProjects();
+      const method = isNew ? "POST" : "PUT";
+      const url = isNew ? API_URL : `${API_URL}/${editing.id}`;
+      const res = await fetch(url, {
+        method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(editing)
+      });
+      if ((await res.json()).success) {
+        toast.success("Project saved!");
+        setEditing(null);
+        fetchProjects();
+      }
     } catch { toast.error("Save failed"); }
   };
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="animate-spin text-primary" size={32} /></div>;
 
   return (
-    <div>
+    <div className="p-4">
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground font-display">Portfolio</h1>
+          <h1 className="text-3xl font-bold font-display text-foreground">Portfolio</h1>
           <p className="text-muted-foreground mt-1">Manage portfolio projects</p>
         </div>
         <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setEditing({ id: "", title: "", category: "", description: "", image: "", tags: [] }); setIsNew(true); }} className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-xl font-semibold hover:bg-primary/90 transition-all">
@@ -100,7 +112,6 @@ export default function AdminPortfolio() {
             </div>
           </motion.div>
         ))}
-        {projects.length === 0 && <p className="text-center text-muted-foreground py-12 col-span-2">No projects yet.</p>}
       </div>
     </div>
   );

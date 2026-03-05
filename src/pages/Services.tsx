@@ -1,22 +1,49 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BarChart, TrendingUp, Layers, Globe, Settings, Search, Shield, Database, Code, Users, Calculator, Smartphone, ArrowRight, Check } from "lucide-react";
+import { BarChart, TrendingUp, Layers, Globe, Settings, Search, Shield, Database, Code, Users, Calculator, Smartphone, ArrowRight, Check, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
+// We define the type for our fetched services
+interface Service {
+  id?: string;
+  title: string;
+  description: string;
+  features: string[];
+}
+
 export default function Services() {
-  const services = [
-    { icon: Code, title: "Application Integration", description: "Seamless API integration and microservices architecture.", features: ["RESTful API Development", "Third-party Integrations", "Microservices Architecture", "API Documentation & Testing"], color: "from-cyan-500 to-blue-500", size: "large" },
-    { icon: TrendingUp, title: "Digital Marketing", description: "Data-driven strategies to amplify your brand.", features: ["Social Media Marketing", "Content Strategy", "Email Campaigns", "PPC Advertising"], color: "from-blue-500 to-purple-500", size: "medium" },
-    { icon: Shield, title: "Cyber Security", description: "Enterprise-grade security solutions.", features: ["Security Audits", "Penetration Testing", "Compliance Management", "Security Training"], color: "from-purple-500 to-pink-500", size: "medium" },
-    { icon: Users, title: "HR Consulting", description: "AI-powered talent acquisition and management.", features: ["Talent Acquisition", "Staff Sourcing", "HR Technology", "Performance Management"], color: "from-pink-500 to-rose-500", size: "medium" },
-    { icon: BarChart, title: "Google Analytics", description: "Comprehensive analytics for data-driven decisions.", features: ["Real-time Data Tracking", "Custom Dashboards", "Conversion Tracking", "Audience Insights"], color: "from-amber-500 to-orange-500", size: "medium" },
-    { icon: Globe, title: "Web Development", description: "Modern, responsive websites.", features: ["Responsive Design", "Custom Development", "E-commerce Solutions", "Progressive Web Apps"], color: "from-emerald-500 to-teal-500", size: "large" },
-    { icon: Search, title: "Search Engine Optimization", description: "Improve visibility and organic search rankings.", features: ["On-page Optimization", "Technical SEO", "Link Building", "Local SEO"], color: "from-indigo-500 to-blue-500", size: "medium" },
-    { icon: Database, title: "Data Processing", description: "Enterprise-grade data processing.", features: ["Data Warehousing", "ETL Processes", "Real-time Processing", "Data Migration"], color: "from-violet-500 to-purple-500", size: "medium" },
-    { icon: Calculator, title: "Bookkeeping", description: "Professional bookkeeping services.", features: ["Financial Recording", "Account Reconciliation", "Tax Preparation", "Financial Reporting"], color: "from-fuchsia-500 to-pink-500", size: "medium" },
-    { icon: Layers, title: "Content Management", description: "Streamline content creation.", features: ["CMS Implementation", "Content Strategy", "Workflow Automation", "Multi-channel Publishing"], color: "from-rose-500 to-red-500", size: "medium" },
-    { icon: Smartphone, title: "Consulting", description: "Strategic management consulting.", features: ["Strategy Development", "Process Optimization", "Change Management", "Technology Advisory"], color: "from-sky-500 to-cyan-500", size: "medium" },
-    { icon: Settings, title: "IT Services", description: "Comprehensive IT solutions.", features: ["Infrastructure Setup", "Cloud Migration", "IT Support", "System Monitoring"], color: "from-teal-500 to-emerald-500", size: "medium" },
+  const [services, setServices] = useState<Service[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // A pool of your beautiful icons and gradients to apply to dynamic database items!
+  const stylePool = [
+    { icon: Code, color: "from-cyan-500 to-blue-500", size: "large" },
+    { icon: TrendingUp, color: "from-blue-500 to-purple-500", size: "medium" },
+    { icon: Shield, color: "from-purple-500 to-pink-500", size: "medium" },
+    { icon: Users, color: "from-pink-500 to-rose-500", size: "medium" },
+    { icon: BarChart, color: "from-amber-500 to-orange-500", size: "medium" },
+    { icon: Globe, color: "from-emerald-500 to-teal-500", size: "large" },
+    { icon: Search, color: "from-indigo-500 to-blue-500", size: "medium" },
+    { icon: Database, color: "from-violet-500 to-purple-500", size: "medium" },
+    { icon: Calculator, color: "from-fuchsia-500 to-pink-500", size: "medium" },
+    { icon: Layers, color: "from-rose-500 to-red-500", size: "medium" },
+    { icon: Smartphone, color: "from-sky-500 to-cyan-500", size: "medium" },
+    { icon: Settings, color: "from-teal-500 to-emerald-500", size: "medium" },
   ];
+
+  useEffect(() => {
+    const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/services` : "/api/services";
+
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setServices(json.data);
+        }
+      })
+      .catch((err) => console.error("Failed to fetch services:", err))
+      .finally(() => setLoading(false));
+  }, []);
 
   const process = [
     { step: "01", title: "Discovery", description: "We dive deep into understanding your business goals.", icon: Search },
@@ -43,30 +70,47 @@ export default function Services() {
       <section className="py-24 bg-background relative">
         <div className="absolute inset-0 mesh-gradient opacity-20" />
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {services.map((service, index) => (
-              <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.05 }} whileHover={{ y: -8, scale: 1.02 }} className={`group relative p-8 bg-gradient-to-br ${service.color} rounded-3xl overflow-hidden cursor-pointer ${service.size === "large" ? "md:col-span-2" : ""}`}>
-                <div className="relative z-10">
-                  <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all">
-                    <service.icon className="text-white" size={28} />
-                  </div>
-                  <h3 className="text-2xl font-bold text-white mb-3 font-display">{service.title}</h3>
-                  <p className="text-white/90 mb-6 leading-relaxed">{service.description}</p>
-                  <ul className="space-y-2 mb-6">
-                    {service.features.map((feature, idx) => (
-                      <li key={idx} className="flex items-center text-white/80 text-sm">
-                        <Check className="mr-2 flex-shrink-0" size={16} />{feature}
-                      </li>
-                    ))}
-                  </ul>
-                  <div className="flex items-center text-white font-semibold group-hover:gap-2 transition-all">
-                    <span>Learn More</span>
-                    <ArrowRight className="group-hover:translate-x-2 transition-transform" size={20} />
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+
+          {loading ? (
+            <div className="flex justify-center py-20">
+              <Loader2 className="animate-spin text-primary" size={48} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {services.map((service, index) => {
+                // Cyclically pick styles from the pool based on the index
+                const style = stylePool[index % stylePool.length];
+                const IconComponent = style.icon;
+
+                return (
+                  <motion.div key={index} initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.5, delay: index * 0.05 }} whileHover={{ y: -8, scale: 1.02 }} className={`group relative p-8 bg-gradient-to-br ${style.color} rounded-3xl overflow-hidden cursor-pointer ${style.size === "large" ? "md:col-span-2" : ""}`}>
+                    <div className="relative z-10">
+                      <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all">
+                        <IconComponent className="text-white" size={28} />
+                      </div>
+                      <h3 className="text-2xl font-bold text-white mb-3 font-display">{service.title}</h3>
+                      <p className="text-white/90 mb-6 leading-relaxed">{service.description}</p>
+                      <ul className="space-y-2 mb-6">
+                        {service.features.map((feature, idx) => (
+                          <li key={idx} className="flex items-center text-white/80 text-sm">
+                            <Check className="mr-2 flex-shrink-0" size={16} />{feature}
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="flex items-center text-white font-semibold group-hover:gap-2 transition-all">
+                        <span>Learn More</span>
+                        <ArrowRight className="group-hover:translate-x-2 transition-transform" size={20} />
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+
+              {services.length === 0 && (
+                <p className="text-center text-muted-foreground py-12 col-span-full">No services available at the moment.</p>
+              )}
+            </div>
+          )}
         </div>
       </section>
 

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { Save, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-import { adminApi } from "@/lib/api";
 import { toast } from "sonner";
 
 export default function AdminAbout() {
@@ -14,34 +13,57 @@ export default function AdminAbout() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
+  // Points to your real backend
+  const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/about` : "/api/about";
+
   useEffect(() => {
-    adminApi.getAbout()
-      .then((res) => {
-        if (res) {
+    // 1. Fetch real data from the database
+    fetch(API_URL)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
           setData({
-            mission: res.mission || "",
-            vision: res.vision || "",
-            heroHeadline: res.hero_headline || "",
-            heroDescription: res.hero_description || "",
+            mission: json.data.mission || "",
+            vision: json.data.vision || "",
+            heroHeadline: json.data.hero_headline || "",
+            heroDescription: json.data.hero_description || "",
           });
         }
       })
-      .catch(() => toast.error("Failed to load about content"))
+      .catch((err) => {
+        console.error("Fetch error:", err);
+        toast.error("Failed to load about content from database");
+      })
       .finally(() => setLoading(false));
   }, []);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      await adminApi.updateAbout({
-        hero_headline: data.heroHeadline,
-        hero_description: data.heroDescription,
-        mission: data.mission,
-        vision: data.vision,
+      // 2. Send updated data back to your backend
+      const response = await fetch(API_URL, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          hero_headline: data.heroHeadline,
+          hero_description: data.heroDescription,
+          mission: data.mission,
+          vision: data.vision,
+        }),
       });
-      toast.success("About content saved!");
-    } catch {
-      toast.error("Failed to save.");
+
+      const json = await response.json();
+
+      if (json.success) {
+        toast.success("About content saved to database!");
+      } else {
+        toast.error(json.message || "Failed to update database.");
+      }
+    } catch (error) {
+      console.error("Save error:", error);
+      toast.error("Failed to save. Make sure your API is running.");
     } finally {
       setSaving(false);
     }
