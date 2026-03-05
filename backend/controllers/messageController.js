@@ -3,9 +3,13 @@ const db = require("../config/db");
 // GET /api/messages
 const getMessages = async (req, res, next) => {
   try {
-    const [rows] = await db.query("SELECT * FROM contact_messages ORDER BY created_at DESC");
+    const [rows] = await db.query(
+      "SELECT * FROM contact_messages ORDER BY created_at DESC"
+    );
+
     res.json(rows);
   } catch (err) {
+    console.error(err);
     next(err);
   }
 };
@@ -26,10 +30,12 @@ const submitMessage = async (req, res, next) => {
       [name, email, subject || "", message]
     );
 
-    res
-      .status(201)
-      .json({ id: result.insertId, message: "Message sent successfully." });
+    res.status(201).json({
+      id: result.insertId,
+      message: "Message sent successfully.",
+    });
   } catch (err) {
+    console.error(err);
     next(err);
   }
 };
@@ -37,7 +43,10 @@ const submitMessage = async (req, res, next) => {
 // DELETE /api/messages/:id
 const deleteMessage = async (req, res, next) => {
   try {
-    await db.query("DELETE FROM contact_messages WHERE id=?", [req.params.id]);
+    const [result] = await db.query(
+      "DELETE FROM contact_messages WHERE id=?",
+      [req.params.id]
+    );
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ message: "Message not found." });
@@ -45,6 +54,7 @@ const deleteMessage = async (req, res, next) => {
 
     res.json({ message: "Message deleted successfully." });
   } catch (err) {
+    console.error(err);
     next(err);
   }
 };

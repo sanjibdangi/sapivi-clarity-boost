@@ -3,13 +3,10 @@
 -- Run AFTER schema.sql
 -- =============================================
 
-USE sapivi_db;
-
 -- Admin user (password: admin123)
--- Generate hash: node -e "require('bcrypt').hash('admin123',10).then(h=>console.log(h))"
--- Replace the hash below with your generated hash
+-- Replace the hash below with your generated bcrypt hash if needed
 INSERT INTO users (name, email, password, role) VALUES
-('Admin', 'admin@sapivi.com', '$2b$10$REPLACE_WITH_YOUR_BCRYPT_HASH', 'admin');
+('Admin', '[admin@sapivi.com](mailto:admin@sapivi.com)', '$2b$10$REPLACE_WITH_YOUR_BCRYPT_HASH', 'admin');
 
 -- Hero
 INSERT INTO hero_content (badge, headline, description, cta_primary, cta_secondary) VALUES
@@ -38,9 +35,9 @@ INSERT INTO clients (name, logo, industry) VALUES
 
 -- Contact Info
 INSERT INTO contact_info (email, phone, address, cin, business_hours) VALUES
-('contact@sapivi.com', '+1 234 567 890', '123 Business Ave, Tech City, TC 12345', 'CIN123456', 'Mon - Fri: 9:00 AM - 6:00 PM');
+('[contact@sapivi.com](mailto:contact@sapivi.com)', '+1 234 567 890', '123 Business Ave, Tech City, TC 12345', 'CIN123456', 'Mon - Fri: 9:00 AM - 6:00 PM');
 
 -- Sample Messages
 INSERT INTO messages (name, email, subject, message) VALUES
-('John Doe', 'john@example.com', 'Project Inquiry', 'I would like to discuss a new web development project.'),
-('Jane Smith', 'jane@example.com', 'Partnership', 'Interested in exploring partnership opportunities.');
+('John Doe', '[john@example.com](mailto:john@example.com)', 'Project Inquiry', 'I would like to discuss a new web development project.'),
+('Jane Smith', '[jane@example.com](mailto:jane@example.com)', 'Partnership', 'Interested in exploring partnership opportunities.');

@@ -3,8 +3,6 @@
 -- Run this file in MySQL to set up the database
 -- =============================================
 
-CREATE DATABASE IF NOT EXISTS sapivi_db;
-USE sapivi_db;
 
 -- =====================
 -- USERS
