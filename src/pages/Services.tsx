@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { BarChart, TrendingUp, Layers, Globe, Settings, Search, Shield, Database, Code, Users, Calculator, Smartphone, ArrowRight, Check, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { adminApi } from "@/lib/api";
+import { defaultServices } from "@/lib/defaults";
 
 // We define the type for our fetched services
 interface Service {
@@ -13,7 +14,7 @@ interface Service {
 }
 
 export default function Services() {
-  const [services, setServices] = useState<Service[]>([]);
+  const [services, setServices] = useState<Service[]>(defaultServices);
   const [loading, setLoading] = useState(true);
 
   // A pool of your beautiful icons and gradients to apply to dynamic database items!
@@ -36,13 +37,14 @@ export default function Services() {
     adminApi.getServices()
       .then((res) => {
         const data = res?.data || res;
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setServices(data.map((item: any) => ({
             ...item,
             features: Array.isArray(item.features) ? item.features :
               (typeof item.features === 'string' ? JSON.parse(item.features) : [])
           })));
         }
+        // If empty, keep defaultServices
       })
       .catch((err) => console.error("Failed to fetch services:", err))
       .finally(() => setLoading(false));

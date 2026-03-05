@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Plus, Save, Trash2, Edit2, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { adminApi } from "@/lib/api";
+import { defaultServices } from "@/lib/defaults";
 
 interface Service {
   id: string;
@@ -23,13 +24,15 @@ export default function AdminServices() {
       .then((res) => {
         // Handle both {success, data} and direct array responses
         const data = res?.data || res;
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setServices(data.map((item: any) => ({
             ...item,
             id: String(item.id),
             features: Array.isArray(item.features) ? item.features : 
               (typeof item.features === 'string' ? JSON.parse(item.features) : [])
           })));
+        } else {
+          setServices(defaultServices);
         }
       })
       .catch((err) => {
