@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Save, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { adminApi } from "@/lib/api";
 
 export default function AdminAbout() {
   const [data, setData] = useState({
@@ -13,20 +14,15 @@ export default function AdminAbout() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Points to your real backend
-  const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/about` : "/api/about";
-
   useEffect(() => {
-    // 1. Fetch real data from the database
-    fetch(API_URL)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && json.data) {
+    adminApi.getAbout()
+      .then((res) => {
+        if (res) {
           setData({
-            mission: json.data.mission || "",
-            vision: json.data.vision || "",
-            heroHeadline: json.data.hero_headline || "",
-            heroDescription: json.data.hero_description || "",
+            mission: res.mission || "",
+            vision: res.vision || "",
+            heroHeadline: res.hero_headline || "",
+            heroDescription: res.hero_description || "",
           });
         }
       })
@@ -40,27 +36,13 @@ export default function AdminAbout() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      // 2. Send updated data back to your backend
-      const response = await fetch(API_URL, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          hero_headline: data.heroHeadline,
-          hero_description: data.heroDescription,
-          mission: data.mission,
-          vision: data.vision,
-        }),
+      await adminApi.updateAbout({
+        hero_headline: data.heroHeadline,
+        hero_description: data.heroDescription,
+        mission: data.mission,
+        vision: data.vision,
       });
-
-      const json = await response.json();
-
-      if (json.success) {
-        toast.success("About content saved to database!");
-      } else {
-        toast.error(json.message || "Failed to update database.");
-      }
+      toast.success("About content saved!");
     } catch (error) {
       console.error("Save error:", error);
       toast.error("Failed to save. Make sure your API is running.");
