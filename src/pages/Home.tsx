@@ -20,13 +20,14 @@ export default function Home() {
   useEffect(() => {
     adminApi.getHero()
       .then((res) => {
-        if (res && res.headline) {
+        const data = res?.data || res;
+        if (data && data.headline) {
           setHeroContent({
-            badge: res.badge || heroContent.badge,
-            headline: res.headline || heroContent.headline,
-            description: res.description || heroContent.description,
-            cta_primary: res.cta_primary || heroContent.cta_primary,
-            cta_secondary: res.cta_secondary || heroContent.cta_secondary,
+            badge: data.badge || heroContent.badge,
+            headline: data.headline || heroContent.headline,
+            description: data.description || heroContent.description,
+            cta_primary: data.cta_primary || heroContent.cta_primary,
+            cta_secondary: data.cta_secondary || heroContent.cta_secondary,
           });
         }
       })

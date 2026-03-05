@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Plus, Save, Trash2, Edit2, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { adminApi } from "@/lib/api";
 
 interface Project {
   id: string;
@@ -18,13 +19,19 @@ export default function AdminPortfolio() {
   const [isNew, setIsNew] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/portfolio` : "/api/portfolio";
-
   const fetchProjects = () => {
-    fetch(API_URL)
-      .then(res => res.json())
-      .then(json => {
-        if (json.success) setProjects(json.data.map((p: any) => ({ ...p, id: String(p.id) })));
+    setLoading(true);
+    adminApi.getPortfolio()
+      .then((res) => {
+        const data = res?.data || res;
+        if (Array.isArray(data)) {
+          setProjects(data.map((p: any) => ({
+            ...p,
+            id: String(p.id),
+            tags: Array.isArray(p.tags) ? p.tags :
+              (typeof p.tags === 'string' ? JSON.parse(p.tags) : [])
+          })));
+        }
       })
       .catch(() => toast.error("Failed to load portfolio"))
       .finally(() => setLoading(false));
@@ -35,29 +42,31 @@ export default function AdminPortfolio() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this project?")) return;
     try {
-      const res = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-      if ((await res.json()).success) {
-        toast.success("Project deleted");
-        fetchProjects();
-      }
+      await adminApi.deletePortfolio(id);
+      toast.success("Project deleted");
+      fetchProjects();
     } catch { toast.error("Delete failed"); }
   };
 
   const handleSave = async () => {
     if (!editing) return;
     try {
-      const method = isNew ? "POST" : "PUT";
-      const url = isNew ? API_URL : `${API_URL}/${editing.id}`;
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(editing)
-      });
-      if ((await res.json()).success) {
-        toast.success("Project saved!");
-        setEditing(null);
-        fetchProjects();
+      const payload = {
+        title: editing.title,
+        category: editing.category,
+        description: editing.description,
+        image: editing.image,
+        tags: editing.tags
+      };
+
+      if (isNew) {
+        await adminApi.createPortfolio(payload);
+      } else {
+        await adminApi.updatePortfolio(editing.id, payload);
       }
+      toast.success("Project saved!");
+      setEditing(null);
+      fetchProjects();
     } catch { toast.error("Save failed"); }
   };
 
