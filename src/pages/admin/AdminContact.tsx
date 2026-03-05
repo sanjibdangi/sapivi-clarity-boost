@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Save, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { adminApi } from "@/lib/api";
 
 export default function AdminContact() {
   const [data, setData] = useState({
@@ -14,50 +15,34 @@ export default function AdminContact() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // We point to /settings so it doesn't conflict with your /contact messages route
-  const API_URL = import.meta.env.VITE_API_URL
-    ? `${import.meta.env.VITE_API_URL}/api/settings`
-    : "/api/settings";
-
   useEffect(() => {
-    fetch(API_URL)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && json.data) {
+    adminApi.getContactInfo()
+      .then((res) => {
+        if (res) {
           setData({
-            email: json.data.email || "",
-            phone: json.data.phone || "",
-            address: json.data.address || "",
-            cin: json.data.cin || "",
-            businessHours: json.data.business_hours || "",
+            email: res.email || "",
+            phone: res.phone || "",
+            address: res.address || "",
+            cin: res.cin || "",
+            businessHours: res.business_hours || "",
           });
         }
       })
       .catch(() => toast.error("Failed to load contact info"))
       .finally(() => setLoading(false));
-  }, [API_URL]);
+  }, []);
 
   const handleSave = async () => {
     setSaving(true);
     try {
-      const res = await fetch(`${API_URL}/update`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: data.email,
-          phone: data.phone,
-          address: data.address,
-          cin: data.cin,
-          business_hours: data.businessHours, // Matches backend expectation
-        }),
+      await adminApi.updateContactInfo({
+        email: data.email,
+        phone: data.phone,
+        address: data.address,
+        cin: data.cin,
+        business_hours: data.businessHours,
       });
-
-      const json = await res.json();
-      if (json.success) {
-        toast.success("Contact info updated successfully!");
-      } else {
-        toast.error(json.message || "Failed to save.");
-      }
+      toast.success("Contact info updated successfully!");
     } catch (error) {
       console.error("Save error:", error);
       toast.error("Server error while saving.");
