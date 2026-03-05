@@ -14,6 +14,7 @@ const sidebarItems = [
   { path: "/admin/clients", label: "Clients", icon: Users },
   { path: "/admin/contact", label: "Contact Info", icon: Mail },
   { path: "/admin/messages", label: "Messages", icon: Mail },
+  { path: "/admin/subscribers", label: "Subscribers", icon: Users },
   { path: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

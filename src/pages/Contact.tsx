@@ -5,7 +5,7 @@ import { adminApi } from "@/lib/api";
 import { toast } from "sonner";
 
 export default function Contact() {
-  const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
+  const [formData, setFormData] = useState({ name: "", email: "", phone: "", subject: "", message: "" });
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -19,7 +19,7 @@ export default function Contact() {
     try {
       await adminApi.submitMessage(formData);
       setSuccess(true);
-      setFormData({ name: "", email: "", subject: "", message: "" });
+      setFormData({ name: "", email: "", phone: "", subject: "", message: "" });
       toast.success("Message sent successfully!");
       setTimeout(() => setSuccess(false), 4000);
     } catch {
@@ -98,9 +98,15 @@ export default function Contact() {
                     <input type="email" id="email" name="email" value={formData.email} onChange={handleChange} required placeholder="john@example.com" className="w-full px-6 py-4 bg-muted border-2 border-transparent rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
                   </div>
                 </div>
-                <div>
-                  <label htmlFor="subject" className="block text-sm font-semibold text-foreground mb-2">Subject *</label>
-                  <input type="text" id="subject" name="subject" value={formData.subject} onChange={handleChange} required placeholder="How can we help you?" className="w-full px-6 py-4 bg-muted border-2 border-transparent rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="phone" className="block text-sm font-semibold text-foreground mb-2">Phone Number</label>
+                    <input type="tel" id="phone" name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 98765 43210" className="w-full px-6 py-4 bg-muted border-2 border-transparent rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
+                  </div>
+                  <div>
+                    <label htmlFor="subject" className="block text-sm font-semibold text-foreground mb-2">Subject *</label>
+                    <input type="text" id="subject" name="subject" value={formData.subject} onChange={handleChange} required placeholder="How can we help you?" className="w-full px-6 py-4 bg-muted border-2 border-transparent rounded-2xl focus:outline-none focus:ring-2 focus:ring-primary transition-all" />
+                  </div>
                 </div>
                 <div>
                   <label htmlFor="message" className="block text-sm font-semibold text-foreground mb-2">Message *</label>

@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS portfolio (
 CREATE TABLE IF NOT EXISTS clients (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(150) NOT NULL,
-  logo VARCHAR(10),
+  logo VARCHAR(500),
   industry VARCHAR(100),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -93,14 +93,24 @@ CREATE TABLE IF NOT EXISTS contact_info (
 );
 
 -- =====================
--- MESSAGES
+-- CONTACT MESSAGES
 -- =====================
-CREATE TABLE IF NOT EXISTS messages (
+CREATE TABLE IF NOT EXISTS contact_messages (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   email VARCHAR(150) NOT NULL,
+  phone VARCHAR(50),
   subject VARCHAR(200),
   message TEXT NOT NULL,
   is_read BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================
+-- SUBSCRIBERS
+-- =====================
+CREATE TABLE IF NOT EXISTS subscribers (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  email VARCHAR(150) NOT NULL UNIQUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
