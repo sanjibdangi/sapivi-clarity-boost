@@ -19,6 +19,7 @@ import AdminPortfolio from "./pages/admin/AdminPortfolio";
 import AdminClients from "./pages/admin/AdminClients";
 import AdminContact from "./pages/admin/AdminContact";
 import AdminMessages from "./pages/admin/AdminMessages";
+import AdminSubscribers from "./pages/admin/AdminSubscribers";
 import AdminSettings from "./pages/admin/AdminSettings";
 import NotFound from "./pages/NotFound";
 
@@ -51,6 +52,7 @@ const App = () => (
             <Route path="clients" element={<AdminClients />} />
             <Route path="contact" element={<AdminContact />} />
             <Route path="messages" element={<AdminMessages />} />
+            <Route path="subscribers" element={<AdminSubscribers />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 

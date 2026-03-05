@@ -31,10 +31,7 @@ api.interceptors.response.use(
       error.message ||
       "API request failed";
 
-
     return Promise.reject(new Error(message));
-
-
   }
 );
 
@@ -72,6 +69,8 @@ export const adminApi = {
 
   getMessages: () => api.get("/messages").then((r) => r.data),
   submitMessage: (data: any) => api.post("/contact", data).then((r) => r.data),
+  markMessageRead: (id: string, is_read: boolean) =>
+    api.patch(`/messages/${id}/read`, { is_read }).then((r) => r.data),
   deleteMessage: (id: string) =>
     api.delete(`/messages/${id}`).then((r) => r.data),
 
@@ -82,6 +81,10 @@ export const adminApi = {
     api.put(`/content/clients/${id}`, data).then((r) => r.data),
   deleteClient: (id: string) =>
     api.delete(`/content/clients/${id}`).then((r) => r.data),
+
+  getSubscribers: () => api.get("/subscribers").then((r) => r.data),
+  deleteSubscriber: (id: string) =>
+    api.delete(`/subscribers/${id}`).then((r) => r.data),
 };
 
 export default api;

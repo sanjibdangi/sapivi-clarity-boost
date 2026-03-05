@@ -4,6 +4,7 @@ const authenticate = require("../middleware/authMiddleware");
 const {
   getMessages,
   submitMessage,
+  markAsRead,
   deleteMessage,
 } = require("../controllers/messageController");
 
@@ -12,6 +13,9 @@ router.get("/", authenticate, getMessages);
 
 // POST /api/messages - public (contact form)
 router.post("/", submitMessage);
+
+// PATCH /api/messages/:id/read - protected
+router.patch("/:id/read", authenticate, markAsRead);
 
 // DELETE /api/messages/:id - protected
 router.delete("/:id", authenticate, deleteMessage);

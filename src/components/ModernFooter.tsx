@@ -19,7 +19,7 @@ export default function ModernFooter() {
 
     try {
 
-      const res = await fetch("http://localhost:3001/api/subscribers", {
+      const res = await fetch("https://api.sapivi.foxnutfusion.com/api/subscribers", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
