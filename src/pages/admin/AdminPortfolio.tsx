@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Plus, Save, Trash2, Edit2, X, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { adminApi } from "@/lib/api";
+import { defaultPortfolio } from "@/lib/defaults";
 
 interface Project {
   id: string;
@@ -24,13 +25,15 @@ export default function AdminPortfolio() {
     adminApi.getPortfolio()
       .then((res) => {
         const data = res?.data || res;
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setProjects(data.map((p: any) => ({
             ...p,
             id: String(p.id),
             tags: Array.isArray(p.tags) ? p.tags :
               (typeof p.tags === 'string' ? JSON.parse(p.tags) : [])
           })));
+        } else {
+          setProjects(defaultPortfolio);
         }
       })
       .catch(() => toast.error("Failed to load portfolio"))

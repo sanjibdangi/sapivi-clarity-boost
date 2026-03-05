@@ -3,6 +3,7 @@ import { ExternalLink, ArrowRight, Sparkles, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { adminApi } from "@/lib/api";
+import { defaultPortfolio } from "@/lib/defaults";
 
 interface Project {
   id: string;
@@ -15,7 +16,7 @@ interface Project {
 
 export default function Portfolio() {
   const [activeFilter, setActiveFilter] = useState("All");
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Project[]>(defaultPortfolio);
   const [loading, setLoading] = useState(true);
 
   // Gradient pool to keep things colorful
@@ -32,7 +33,7 @@ export default function Portfolio() {
     adminApi.getPortfolio()
       .then((res) => {
         const data = res?.data || res;
-        if (Array.isArray(data)) {
+        if (Array.isArray(data) && data.length > 0) {
           setProjects(data.map((p: any) => ({
             ...p,
             id: String(p.id),
@@ -40,6 +41,7 @@ export default function Portfolio() {
               (typeof p.tags === 'string' ? JSON.parse(p.tags) : [])
           })));
         }
+        // If empty, keep defaultPortfolio
       })
       .catch((err) => console.error("Error fetching portfolio:", err))
       .finally(() => setLoading(false));
