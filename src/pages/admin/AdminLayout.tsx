@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  LayoutDashboard, FileText, Briefcase, FolderOpen, Mail, Users, Settings, LogOut, Menu, X, ChevronRight,
+  LayoutDashboard, FileText, Briefcase, FolderOpen, Mail, Users, Settings, LogOut, Menu, X, ChevronRight, Bell,
 } from "lucide-react";
+import { adminApi } from "@/lib/api";
 
 const sidebarItems = [
   { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -20,8 +21,33 @@ const sidebarItems = [
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [showNotif, setShowNotif] = useState(false);
+  const prevCountRef = useRef(0);
   const location = useLocation();
   const navigate = useNavigate();
+
+  // Poll for unread messages
+  useEffect(() => {
+    const fetchUnread = () => {
+      adminApi.getMessages()
+        .then((data) => {
+          if (Array.isArray(data)) {
+            const count = data.filter((m: any) => !m.is_read).length;
+            if (count > prevCountRef.current && prevCountRef.current > 0) {
+              setShowNotif(true);
+              setTimeout(() => setShowNotif(false), 3000);
+            }
+            prevCountRef.current = count;
+            setUnreadCount(count);
+          }
+        })
+        .catch(() => {});
+    };
+    fetchUnread();
+    const interval = setInterval(fetchUnread, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("admin_token");
@@ -128,6 +154,31 @@ export default function AdminLayout() {
             <Menu size={20} />
           </button>
           <div className="flex-1" />
+
+          {/* Notification Bell */}
+          <Link to="/admin/messages" className="relative p-2 hover:bg-muted rounded-xl transition-colors">
+            <Bell size={20} className="text-muted-foreground" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 w-5 h-5 bg-destructive text-destructive-foreground text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </Link>
+
+          {/* New message toast notification */}
+          <AnimatePresence>
+            {showNotif && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-16 right-6 bg-primary text-primary-foreground px-4 py-3 rounded-xl shadow-lg text-sm font-medium z-50"
+              >
+                🔔 New message received!
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <Link to="/" className="text-sm text-muted-foreground hover:text-primary transition-colors">
             View Website →
           </Link>
