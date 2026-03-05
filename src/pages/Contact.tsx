@@ -19,19 +19,15 @@ export default function Contact() {
   });
 
   useEffect(() => {
-    // Fetch live settings from your new API
-    const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/settings` : "/api/settings";
-
-    fetch(API_URL)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && json.data) {
+    adminApi.getContactInfo()
+      .then((res) => {
+        if (res && res.email) {
           setInfo({
-            email: json.data.email || info.email,
-            phone: json.data.phone || info.phone,
-            address: json.data.address || info.address,
-            cin: json.data.cin || info.cin,
-            businessHours: json.data.business_hours || info.businessHours,
+            email: res.email || info.email,
+            phone: res.phone || info.phone,
+            address: res.address || info.address,
+            cin: res.cin || info.cin,
+            businessHours: res.business_hours || info.businessHours,
           });
         }
       })

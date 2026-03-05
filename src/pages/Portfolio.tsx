@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ExternalLink, ArrowRight, Sparkles, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { adminApi } from "@/lib/api";
 
 interface Project {
   id: string;
@@ -28,12 +29,9 @@ export default function Portfolio() {
   ];
 
   useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/portfolio` : "/api/portfolio";
-
-    fetch(API_URL)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success) setProjects(json.data);
+    adminApi.getPortfolio()
+      .then((res) => {
+        if (Array.isArray(res)) setProjects(res);
       })
       .catch((err) => console.error("Error fetching portfolio:", err))
       .finally(() => setLoading(false));

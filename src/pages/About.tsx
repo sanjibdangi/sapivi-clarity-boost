@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Users, Target, Award, TrendingUp, Zap, Shield, Globe, Heart, Sparkles, CheckCircle2 } from "lucide-react";
+import { adminApi } from "@/lib/api";
 
 export default function About() {
   // NEW: State to hold your dynamic About content
@@ -11,19 +12,16 @@ export default function About() {
     vision: "To be the global leader in integrated business solutions, recognized for our innovation, expertise, and unwavering commitment to client success."
   });
 
-  // NEW: Fetch the dynamic About content from the database
+  // Fetch the dynamic About content from the database
   useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/about` : "/api/about";
-
-    fetch(API_URL)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && json.data) {
+    adminApi.getAbout()
+      .then((res) => {
+        if (res && res.mission) {
           setAboutContent({
-            heroHeadline: json.data.hero_headline || "Crafting Digital\nExcellence Since 2010",
-            heroDescription: json.data.hero_description || "We're a team of innovators, designers, and developers passionate about transforming businesses through technology.",
-            mission: json.data.mission || "To empower businesses worldwide with innovative technology solutions that drive growth, efficiency, and competitive advantage in the digital era.",
-            vision: json.data.vision || "To be the global leader in integrated business solutions, recognized for our innovation, expertise, and unwavering commitment to client success."
+            heroHeadline: res.hero_headline || aboutContent.heroHeadline,
+            heroDescription: res.hero_description || aboutContent.heroDescription,
+            mission: res.mission || aboutContent.mission,
+            vision: res.vision || aboutContent.vision,
           });
         }
       })

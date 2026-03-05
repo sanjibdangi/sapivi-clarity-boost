@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { ArrowRight, Sparkles, Zap, Shield, TrendingUp, Users, Code, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
+import { adminApi } from "@/lib/api";
 
 export default function Home() {
   const [stats, setStats] = useState({ years: 0, clients: 0, projects: 0, satisfaction: 0 });
@@ -15,21 +16,17 @@ export default function Home() {
     cta_secondary: "View Our Work"
   });
 
-  // NEW: Fetch the dynamic hero content from the database
+  // Fetch the dynamic hero content from the database
   useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/hero` : "/api/hero";
-
-    fetch(API_URL)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && json.data) {
-          // Update state with database values, keeping fallbacks just in case
+    adminApi.getHero()
+      .then((res) => {
+        if (res && res.headline) {
           setHeroContent({
-            badge: json.data.badge || "Transforming Businesses Since 2010",
-            headline: json.data.headline || "Innovate.\nIntegrate.\nDominate.",
-            description: json.data.description || "We transform businesses with cutting-edge digital solutions, AI-powered HR consulting, and enterprise-grade technology.",
-            cta_primary: json.data.cta_primary || "Start Your Project",
-            cta_secondary: json.data.cta_secondary || "View Our Work"
+            badge: res.badge || heroContent.badge,
+            headline: res.headline || heroContent.headline,
+            description: res.description || heroContent.description,
+            cta_primary: res.cta_primary || heroContent.cta_primary,
+            cta_secondary: res.cta_secondary || heroContent.cta_secondary,
           });
         }
       })

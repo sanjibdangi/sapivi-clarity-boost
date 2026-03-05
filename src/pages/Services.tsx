@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { BarChart, TrendingUp, Layers, Globe, Settings, Search, Shield, Database, Code, Users, Calculator, Smartphone, ArrowRight, Check, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { adminApi } from "@/lib/api";
 
 // We define the type for our fetched services
 interface Service {
@@ -32,14 +33,9 @@ export default function Services() {
   ];
 
   useEffect(() => {
-    const API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api/services` : "/api/services";
-
-    fetch(API_URL)
-      .then((res) => res.json())
-      .then((json) => {
-        if (json.success && json.data) {
-          setServices(json.data);
-        }
+    adminApi.getServices()
+      .then((res) => {
+        if (Array.isArray(res)) setServices(res);
       })
       .catch((err) => console.error("Failed to fetch services:", err))
       .finally(() => setLoading(false));
