@@ -4,7 +4,7 @@ const db = require("../config/db");
 const getMessages = async (req, res, next) => {
   try {
     const [rows] = await db.query(
-      "SELECT * FROM contact_messages ORDER BY created_at DESC"
+      "SELECT * FROM messages ORDER BY created_at DESC"
     );
     res.json(rows);
   } catch (err) {
@@ -25,7 +25,7 @@ const submitMessage = async (req, res, next) => {
     }
 
     const [result] = await db.query(
-      "INSERT INTO contact_messages (name, email, phone, subject, message) VALUES (?,?,?,?,?)",
+      "INSERT INTO messages (name, email, phone, subject, message) VALUES (?,?,?,?,?)",
       [name, email, phone || null, subject || "", message]
     );
 
@@ -44,7 +44,7 @@ const markAsRead = async (req, res, next) => {
   try {
     const { is_read } = req.body;
     const [result] = await db.query(
-      "UPDATE contact_messages SET is_read=? WHERE id=?",
+      "UPDATE messages SET is_read=? WHERE id=?",
       [is_read !== false ? 1 : 0, req.params.id]
     );
     if (result.affectedRows === 0) {
@@ -61,7 +61,7 @@ const markAsRead = async (req, res, next) => {
 const deleteMessage = async (req, res, next) => {
   try {
     const [result] = await db.query(
-      "DELETE FROM contact_messages WHERE id=?",
+      "DELETE FROM messages WHERE id=?",
       [req.params.id]
     );
     if (result.affectedRows === 0) {
