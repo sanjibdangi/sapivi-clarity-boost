@@ -95,7 +95,7 @@ CREATE TABLE IF NOT EXISTS contact_info (
 -- =====================
 -- CONTACT MESSAGES
 -- =====================
-CREATE TABLE IF NOT EXISTS contact_messages (
+CREATE TABLE IF NOT EXISTS messages (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
   email VARCHAR(150) NOT NULL,
