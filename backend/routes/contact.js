@@ -16,7 +16,7 @@ router.post("/", async (req, res) => {
         }
 
         const sql =
-            "INSERT INTO contact_messages (name, email, phone, subject, message) VALUES (?,?,?,?,?)";
+            "INSERT INTO messages (name, email, phone, subject, message) VALUES (?,?,?,?,?)";
 
         await db.execute(sql, [name, email, phone || null, subject || "", message]);
 
