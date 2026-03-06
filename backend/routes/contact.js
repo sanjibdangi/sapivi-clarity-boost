@@ -1,33 +1,24 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-const nodemailer = require("nodemailer");
+const sgMail = require("@sendgrid/mail");
 
-// Create reusable transporter
-const createTransporter = () => {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: parseInt(process.env.SMTP_PORT || "587"),
-    secure: process.env.SMTP_SECURE === "true",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
-};
+// Initialize SendGrid
+if (process.env.SENDGRID_API_KEY) {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
 
-// Send notification email
+// Send notification email via SendGrid
 const sendNotificationEmail = async (data) => {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.warn("⚠️ SMTP not configured, skipping email notification");
+  if (!process.env.SENDGRID_API_KEY) {
+    console.warn("⚠️ SendGrid API key not configured, skipping email notification");
     return;
   }
 
   try {
-    const transporter = createTransporter();
-    await transporter.sendMail({
-      from: `"SAPIVI Website" <${process.env.SMTP_USER}>`,
-      to: process.env.NOTIFY_EMAIL || "contact@sapivi.com",
+    const msg = {
+      to: process.env.EMAIL_TO || "contact@sapivi.com",
+      from: process.env.EMAIL_FROM || "sapiviteam@gmail.com",
       replyTo: data.email,
       subject: `New Contact: ${data.subject || "No Subject"}`,
       html: `
@@ -50,10 +41,12 @@ const sendNotificationEmail = async (data) => {
           </p>
         </div>
       `,
-    });
-    console.log("✅ Notification email sent to", process.env.NOTIFY_EMAIL || "contact@sapivi.com");
+    };
+
+    await sgMail.send(msg);
+    console.log("✅ Email sent via SendGrid to", process.env.EMAIL_TO || "contact@sapivi.com");
   } catch (err) {
-    console.error("❌ Email send failed:", err.message);
+    console.error("❌ SendGrid email failed:", err.response?.body || err.message);
   }
 };
 
